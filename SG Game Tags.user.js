@@ -5,9 +5,8 @@
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
-// @include      *www.steamgifts.com/
-// @include      *www.steamgifts.com/giveaway/*
-// @include      *www.steamgifts.com/giveaways/search?*
+// @include      *www.steamgifts.com/*
+
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @grant        none
 // ==/UserScript==
@@ -35,16 +34,13 @@ $("head").append(myCSS);
 
 
 /* Global Variables */
-var SCE = "http://www.steamcardexchange.net/index.php?inventorygame-appid-";
-var SGBundle = "http://www.steamgifts.com/bundle-games/search?q="
+var linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid-";
+var linkBundle = "http://www.steamgifts.com/bundle-games/search?q="
 
 var tCardTitle = "This game has trading cards";
 var tBundleTitle = "This game is considered as bundled by Steamgifts";
 
-var featuredGameID = $(".global__image-outer-wrap").attr("href");
-
-var featuredGameName = $(".featured__heading__medium").text();
-
+/* Create Trading Card Tag */
 var tCards = document.createElement('a');
 tCards.setAttribute("href", featuredGameID);
 tCards.setAttribute("id", "tags");
@@ -53,17 +49,23 @@ tCards.setAttribute("target", "_blank");
 tCards.setAttribute("title", tCardTitle);
 tCards.innerHTML = "Trading Cards";
 
+/* Create Bundle Tag */
 var tBundle = document.createElement('a');
-tBundle.setAttribute("href", SGBundle+featuredGameName);
+tBundle.setAttribute("href", linkBundle+featuredGameName);
 tBundle.setAttribute("id", "tags");
 tBundle.setAttribute("class", "bundle");
 tBundle.setAttribute("target", "_blank");
 tBundle.setAttribute("title", tBundleTitle);
 tBundle.innerHTML = "Bundled";
 
+/* 
+note
+www.steamgifts.com/user/* use the same class featured__heading. Need to check if user page, don't show tags.
+*/
+
 // $(".giveaway__heading").append(tCards);
 // $(".giveaway__heading").append(tBundle);
 
 //TODO: exclude steamgifts.com/user/*
-$(".featured__heading").append(tCards);
-$(".featured__heading").append(tBundle);
+// $(".featured__heading").append(tCards);
+// $(".featured__heading").append(tBundle);

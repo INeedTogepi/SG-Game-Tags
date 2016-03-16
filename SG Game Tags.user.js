@@ -5,10 +5,13 @@
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
-// @include      http://www.steamgifts.com/giveaway/*
+// @match        http://www.steamgifts.com/*
 
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
-// @grant        none
+// @grant		  GM_deleteValue 
+// @grant		  GM_getValue 
+// @grant		  GM_listValues 
+// @grant		  GM_setValue 
 // ==/UserScript==
 
 /* CSS */
@@ -38,13 +41,13 @@ const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid
 const linkBundle = "http://www.steamgifts.com/bundle-games/search?q=";
 const linkGameAPI = "http://cors.io/?u=http://store.steampowered.com/api/appdetails?appids=";
 
+const SGhome = "http://www.steamgifts.com/";
+
+const regexuser = /http:\/\/www.steamgifts.com\/user\//;
+
 const tCardTitle = "This game has trading cards";
 const tBundleTitle = "This game is considered as bundled by Steamgifts";
-const catID = "29";
-const type = "jsonp";
 
-const div1 = ".featured__heading";
-const div2 = ".giveaway__heading";
 
 /* Create Trading Card Tag */
 var tCards = document.createElement('a');
@@ -63,50 +66,63 @@ tBundle.setAttribute("target", "_blank");
 tBundle.setAttribute("title", tBundleTitle);
 tBundle.innerHTML = "Bundled";
 
-// global__image-outer-wrap--game-large
-//featured__inner-wrap
+var currLoc = window.location.href;
 
-var ID = getAppID($(".global__image-outer-wrap img")[0].src);
+main();
 
-getTradingCardStatus(div1, ID);
+function main()
+{
+	//shows trading card tag in featured game (header)
+	if(!regexuser.test(currLoc)) //exclude user page for getting featured appID
+	{	
+		var ID = getAppIDfromImg($(".global__image-outer-wrap img")[0].src);
+		getTradingCardStatus($(".featured__heading"), ID);
+	}
 
-function getAppID(link)
+
+	//looping for each games shown
+	$(".giveaway__row-inner-wrap").each(function(index, element)
+	{
+		var ID = getAppIDfromLink($("a.giveaway__icon")[index].href);
+		
+		getTradingCardStatus($(".giveaway__heading:nth-child(" + index + ")"), ID);
+	});
+}
+
+function getAppIDfromImg(link)
 {
 //	http://cdn.akamai.steamstatic.com/steam/apps/269270/header_292x136.jpg
 	var url = link.split("/");
 	return url[url.length-2];
 }
 
-function getTradingCardStatus(divTarget, appID)
+function getAppIDfromLink(link)
 {
-    var result = false;
+//	http://store.steampowered.com/app/403570/	
+	var url = link.split("/");
+	return url[url.length-2];
+}
+
+function getTradingCardStatus(elems, appID)
+{
     $.ajax({
         url: linkGameAPI+appID,
-        datatype: type,
+        datatype: "jsonp",
         complete: function(data)
         {
             var obj = JSON.parse(data.responseText)[appID].data.categories;
             for(i=0; i<obj.length; i++)
             {
-                if(obj[i].id == catID)
+                if(obj[i].id == "29")
                 {
-					tCards.setAttribute("href", linkCard+appID);
-                    $(divTarget).append(tCards);
-                    break;
+                	tCards.setAttribute("href", linkCard+appID);
+                	//console.log($(".giveaway__heading")[index]);
+                	//console.log(elems);
+                	console.log(appID);
+				elems.append(tCards);
+				break;
                 }
             }
         }
     });
 }
-
-/* 
-note
-www.steamgifts.com/user/* use the same class featured__heading. Need to check if user page, don't show tags.
-*/
-
-// $(".giveaway__heading").append(tCards);
-// $(".giveaway__heading").append(tBundle);
-
-//TODO: exclude steamgifts.com/user/*
-// $(".featured__heading").append(tCards);
-// $(".featured__heading").append(tBundle);

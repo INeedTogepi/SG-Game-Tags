@@ -63,33 +63,37 @@ function main()
 	if(currLoc[currLoc.length-2] != "user") //exclude user page for getting featured appID
 	{	
 		var ID = getAppIDfromImg($(".global__image-outer-wrap img")[0].src);
-		var Name = $(".featured__heading__medium").text();
-		var target = $(".featured__heading");
+		if (ID != null) { //if game doesn't have appID e.g Humble Indie Bundle
+			var Name = $(".featured__heading__medium").text();
+			var target = $(".featured__heading");
 
-		var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
-		var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
+			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
+			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
 
-		getTradingCardStatus(tagCard, ID);
-		getBundleStatus(tagBundle, ID, Name);
+			getTradingCardStatus(tagCard, ID);
+			getBundleStatus(tagBundle, ID, Name);
+		}
 	}
 
 	//looping for each games shown
 	$(".giveaway__row-inner-wrap").each(function(index, element)
 	{
 		var ID = getAppIDfromLink($("a.giveaway__icon")[index].href);
-		var Name = $($(".giveaway__heading__name")[index]).text();
-		var target = $(element).find(".giveaway__heading");
+		if (ID != null) {
+			var Name = $($(".giveaway__heading__name")[index]).text();
+			var target = $(element).find(".giveaway__heading");
 
-		var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
-		var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
+			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
+			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
 
-		//I assume app will have zero at the end ID, and package is non zero.Need more research.
-		if(ID.charAt(ID.length-1) == "0") 
-			getTradingCardStatus(tagCard, ID);
-		else
-			getTradingCardStatusFromPackage(tagCard, ID);
-		
-		getBundleStatus(tagBundle, ID, Name);
+			//I assume app will have zero at the end ID, and package is non zero.Need more research.
+			if(ID.charAt(ID.length-1) == "0") 
+				getTradingCardStatus(tagCard, ID);
+			else
+				getTradingCardStatusFromPackage(tagCard, ID);
+			
+			getBundleStatus(tagBundle, ID, Name);
+		}
 	});
 }
 

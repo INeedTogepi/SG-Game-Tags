@@ -17,7 +17,7 @@
 /* CSS */
 var myCSS;
 myCSS = '<style> \
-		#tags { \
+		.tags { \
 			color: #FFFFFF; \
 			text-decoration: none; \
 			border-radius: 20px; \
@@ -30,8 +30,8 @@ myCSS = '<style> \
 			text-shadow: none; \
 			display: none; \
 		} \
-		.tcards { background-color: #3AA435; } \
-		.bundle { background-color: #f44336; } \
+		.tags-green { background-color: #3AA435; } \
+		.tags-red { background-color: #f44336; } \
 	</style>';
 
 $("head").append(myCSS);
@@ -46,11 +46,11 @@ const linkBundle = "http://www.steamgifts.com/bundle-games/search?q=";
 const linkGameAPI = "http://cors.io/?u=http://store.steampowered.com/api/appdetails?appids=";
 const linkPackAPI = "http://cors.io/?u=http://store.steampowered.com/api/packagedetails?packageids=";
 
-const ClassCard = "tcards";
+const ClassCard = "tags tags-green";
 const TitleCard = "This game has trading cards";
-const TextCard = "Trading Card";
+const TextCard = "Trading Cards";
 
-const ClassBundle = "bundle";
+const ClassBundle = "tags tags-red";
 const TitleBundle = "This game is considered as bundled by Steamgifts";
 const TextBundle = "Bundled";
 
@@ -83,7 +83,12 @@ function main()
 		var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
 		var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
 
-		getTradingCardStatus(tagCard, ID);
+		//I assume app will have zero at the end ID, and package is non zero.Need more research.
+		if(ID.charAt(ID.length-1) == "0") 
+			getTradingCardStatus(tagCard, ID);
+		else
+			getTradingCardStatusFromPackage(tagCard, ID);
+		
 		getBundleStatus(tagBundle, ID, Name);
 	});
 }
@@ -120,24 +125,24 @@ function getAppIDfromLink(link)
 function getTradingCardStatus(elems, appID)
 {
 	//TODO: Check if the game is saved, if no then request to steam
-    $.ajax({
-        url: linkGameAPI+appID,
-        datatype: "jsonp",
-        complete: function(data)
-        {
-            var obj = JSON.parse(data.responseText)[appID].data.categories;
-            for(i=0; i<obj.length; i++)
-            {
-                if(obj[i].id == "29")
-                {
-                	//TODO : Save appID + true ke local cache
-                	$(elems).css("display", "block");
+	$.ajax({
+		url: linkGameAPI+appID,
+		datatype: "jsonp",
+		complete: function(data)
+		{
+			var obj = JSON.parse(data.responseText)[appID].data.categories;
+			for(i=0; i<obj.length; i++)
+			{
+				if(obj[i].id == "29")
+				{
+					//TODO : Save appID + true ke local cache
+					$(elems).css("display", "block");
 					break;
-                }
-            }
-            //TODO : Save appID + false + expire time ke local cache
-        }
-    });
+				}
+			}
+		//TODO : Save appID + false + expire time ke local cache
+		}
+	});
 }
 
 function getBundleStatus(elems, appID, appName)
@@ -158,5 +163,20 @@ function getBundleStatus(elems, appID, appName)
 			}
 		}
 		//TODO : Save appID + false + expire time ke local cache
+	});
+}
+
+function getTradingCardStatusFromPackage(elems, appID) //Need more research
+{
+	//TODO: Check if the game is saved, if no then request to steam
+	$.ajax({
+		url: linkPackAPI+appID,
+		datatype: "jsonp",
+		complete: function(data)
+		{
+			var ID = JSON.parse(data.responseText)[appID].data.apps[0].id;
+			getTradingCardStatus(elems, ID);
+			//TODO : Save appID + false + expire time ke local cache
+		}
 	});
 }

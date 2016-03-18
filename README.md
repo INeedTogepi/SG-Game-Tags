@@ -33,6 +33,7 @@ The script requires :
 
 ## Changelogs
 0.1	First Release.
+0.2	Use GM_xmlhttpRequest instead of cors.io to bypass CORS problem
 
 ## Not sure if it should be implemented
 - "Achievement" tag if the game has steam achievements. Some game's name are pretty long that it'd looks ugly if there is 1 more tags. Unless "Bundled" and "Trading Cards" changed to "B" and "C" to shorten the text.

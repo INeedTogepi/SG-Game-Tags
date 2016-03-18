@@ -1,17 +1,18 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      0.1
+// @version      0.2
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
 // @match        http://www.steamgifts.com/*
 
-// @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
+// @require	  https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @grant		  GM_deleteValue 
 // @grant		  GM_getValue 
 // @grant		  GM_listValues 
 // @grant		  GM_setValue 
+// @grant		  GM_xmlhttpRequest
 // ==/UserScript==
 
 /* CSS */
@@ -26,7 +27,7 @@ myCSS = '<style> \
 			padding-left: 5px; \
 			padding-right: 5px; \
 			font-size: 8pt; \
-			margin: 3px; \
+			margin-left: 3px; \
 			text-shadow: none; \
 			display: none; \
 		} \
@@ -41,14 +42,12 @@ $("head").append(myCSS);
 const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid-";
 const linkBundle = "http://www.steamgifts.com/bundle-games/search?q=";
 
- //use cors.io to bypass CORS problem, but it can't receive 2 or more GET params
-//should use http://store.steampowered.com/api/appdetails?filters=categories&appids= for less data request, but somehow has CORS problem
-const linkGameAPI = "http://cors.io/?u=http://store.steampowered.com/api/appdetails?appids=";
-const linkPackAPI = "http://cors.io/?u=http://store.steampowered.com/api/packagedetails?packageids=";
+const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories&appids=";
+const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=categories&packageids=";
 
 const ClassCard = "tags tags-green";
 const TitleCard = "This game has trading cards";
-const TextCard = "Trading Cards";
+const TextCard = "Cards";
 
 const ClassBundle = "tags tags-red";
 const TitleBundle = "This game is considered as bundled by Steamgifts";
@@ -129,10 +128,11 @@ function getAppIDfromLink(link)
 function getTradingCardStatus(elems, appID)
 {
 	//TODO: Check if the game is saved, if no then request to steam
-	$.ajax({
+	GM_xmlhttpRequest({
+		method: "GET",
+		timeout: 10000,
 		url: linkGameAPI+appID,
-		datatype: "jsonp",
-		complete: function(data)
+		onload: function(data) 
 		{
 			var obj = JSON.parse(data.responseText)[appID].data.categories;
 			for(i=0; i<obj.length; i++)
@@ -144,7 +144,6 @@ function getTradingCardStatus(elems, appID)
 					break;
 				}
 			}
-		//TODO : Save appID + false + expire time ke local cache
 		}
 	});
 }
@@ -173,10 +172,11 @@ function getBundleStatus(elems, appID, appName)
 function getTradingCardStatusFromPackage(elems, appID) //Need more research
 {
 	//TODO: Check if the game is saved, if no then request to steam
-	$.ajax({
-		url: linkPackAPI+appID,
-		datatype: "jsonp",
-		complete: function(data)
+	GM_xmlhttpRequest({
+		method: "GET",
+		timeout: 10000,
+		url: linkGameAPI+appID,
+		onload: function(data) 
 		{
 			var ID = JSON.parse(data.responseText)[appID].data.apps[0].id;
 			getTradingCardStatus(elems, ID);

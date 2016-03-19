@@ -30,13 +30,16 @@ The script requires :
 ![3](http://i.imgur.com/myPzhN2.jpg)
 
 ## Changelogs
-0.1	First Release.
-0.2	Use GM_xmlhttpRequest instead of cors.io to bypass CORS problem.
-	Changed "Trading Cards" to "Cards" for a while because of space problem.
-1.0	Requested data is now saved. The scripts now assume if the game has trading cards or is bundled, it will always be.
-	The script now checks all of the games in package to see if one of them has trading cards.
-	Error handling in some pages. The scripts will try to print out error description in console logs. (for advance user).
+1.0
+- Requested data is now saved. The scripts now assume if the game has trading cards or is bundled, it will always be.
+- The script now checks all of the games in package to see if one of them has trading cards.
+- Error handling in some pages. The scripts will try to print out error description in console logs. (for advance user).
 
+0.2
+- Use GM_xmlhttpRequest instead of cors.io to bypass CORS problem.
+- Changed "Trading Cards" to "Cards" for a while because of space problem.
+
+0.1	First Release.
 
 ## To Do List
 - ~~Save data as cache for better performance and to avoid making too much request to steam and SG.~~ (done)

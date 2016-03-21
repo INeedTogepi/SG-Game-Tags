@@ -1,17 +1,18 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      0.1
+// @version      2.0
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
 // @match        http://www.steamgifts.com/*
 
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
-// @grant		  GM_deleteValue 
-// @grant		  GM_getValue 
-// @grant		  GM_listValues 
-// @grant		  GM_setValue 
+// @grant        GM_deleteValue 
+// @grant        GM_getValue 
+// @grant        GM_listValues 
+// @grant        GM_setValue 
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 /* CSS */
@@ -26,12 +27,16 @@ myCSS = '<style> \
 			padding-left: 5px; \
 			padding-right: 5px; \
 			font-size: 8pt; \
-			margin: 3px; \
+			margin-right: 3px; \
+			margin-bottom: 3px; \
+			margin-top: 3px; \
 			text-shadow: none; \
 			display: none; \
 		} \
 		.tags-green { background-color: #3AA435; } \
 		.tags-red { background-color: #f44336; } \
+		.tags-blue { background-color: #305AC9; } \
+		.tags-black { background-color: #0a1229; } \
 	</style>';
 
 $("head").append(myCSS);
@@ -39,12 +44,12 @@ $("head").append(myCSS);
 
 /* Constant Variables */
 const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid-";
+const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievements/";
 const linkBundle = "http://www.steamgifts.com/bundle-games/search?q=";
+const linkHidden = "http://www.steamgifts.com/account/settings/giveaways/filters/search?q="
 
- //use cors.io to bypass CORS problem, but it can't receive 2 or more GET params
-//should use http://store.steampowered.com/api/appdetails?filters=categories&appids= for less data request, but somehow has CORS problem
-const linkGameAPI = "http://cors.io/?u=http://store.steampowered.com/api/appdetails?appids=";
-const linkPackAPI = "http://cors.io/?u=http://store.steampowered.com/api/packagedetails?packageids=";
+const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories&appids=";
+const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=categories&packageids=";
 
 const ClassCard = "tags tags-green";
 const TitleCard = "This game has trading cards";
@@ -54,45 +59,136 @@ const ClassBundle = "tags tags-red";
 const TitleBundle = "This game is considered as bundled by Steamgifts";
 const TextBundle = "Bundled";
 
+const ClassAchievement = "tags tags-blue";
+const TitleAchievement = "This game has achievements";
+const TextAchievement = "Achievements";
+
+const ClassHidden = "tags tags-black";
+const TitleHidden = "This game is in your filter list";
+const TextHidden = "Hidden";
+
+var flagNewGiveaway = false;
+
 main();
 
 function main()
 {
-	//shows trading card tag in featured game (header)
 	var currLoc = window.location.href.split("/");
-	if(currLoc[currLoc.length-2] != "user") //exclude user page for getting featured appID
+
+	// shows trading card tag in featured game (header)
+	if($(".featured__inner-wrap").length == 1) //exclude page without featured inner wrap
 	{	
-		var ID = getAppIDfromImg($(".global__image-outer-wrap img")[0].src);
-		if (ID != null) { //if game doesn't have appID e.g Humble Indie Bundle
+		var url;
+		if(currLoc[3] == "giveaway") //giveaway page
+			url = $(".featured__inner-wrap a")[0].href;
+		else if(currLoc[3] != "user") //homepage
+			url = $(".featured__inner-wrap a img")[0].src;
+
+		if (url != null) //if game doesn't have appID e.g Humble Indie Bundle
+		{ 
+			var ID = getAppIDfromLink(url);
+
 			var Name = $(".featured__heading__medium").text();
 			var target = $(".featured__heading");
 
 			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
-			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
+			var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
+			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
+			var tagHidden = createTag(ClassHidden, TitleHidden, TextHidden, linkHidden+Name, tagBundle);
 
-			getTradingCardStatus(tagCard, ID);
-			getBundleStatus(tagBundle, ID, Name);
+			if(isAppOrPackage(url))
+			{
+				getTradingCardStatus(ID, tagCard);
+				getAchievementStatus(ID, tagAchievement);
+			}
+			else
+			{
+				tagCard.setAttribute("href", url);
+				tagAchievement.setAttribute("href", url);
+				getSteamCategoriesFromPackage(ID, tagCard, tagAchievement);
+			}
+
+			getBundleStatus(ID, Name, tagBundle);
+			
+			if(currLoc[3] == "giveaway") //only trigger inside giveaway page, no need for homepage
+				getHiddenStatus(ID, Name, tagHidden);
 		}
 	}
+	else if((currLoc[3] == "giveaways" && (/created|entered|won/.test(currLoc[4]))) || currLoc[6] == "filters")
+	{
+		$(".table__row-inner-wrap").each(function(index, element)
+		{
 
-	//looping for each games shown
+			var Name = $(element).find(".table__column__heading").text();
+			var target = $(element).find(".table__column--width-fill p:nth-child(1)");
+
+			var url;
+			if(currLoc[6] == "filters")
+				url = $(element).find("a.table__column__secondary-link").text();
+			else	
+				url = $($(element).find(".global__image-inner-wrap")[0]).css('background-image');
+
+			if(url != null) //if can get app ID from image
+			{
+				url = url.replace('url(', '').replace(')', '');
+				var ID = getAppIDfromLink(url);
+
+				var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
+				var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
+				var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
+				
+				if(isAppOrPackage(url)) 
+				{
+					getTradingCardStatus(ID, tagCard);
+					getAchievementStatus(ID, tagAchievement);
+				}
+				else
+				{
+					tagCard.setAttribute("href", url);
+					tagAchievement.setAttribute("href", url);
+					getSteamCategoriesFromPackage(ID, tagCard, tagAchievement);
+				}
+
+				getBundleStatus(ID, Name, tagBundle);
+			}
+			else //if image does not have appID
+			{
+				//open giveaway page, and then get appID from image
+			}
+		});
+	}
+	else if(currLoc[3] == "giveaways" && currLoc[4] == "new") // http://www.steamgifts.com/giveaways/new
+	{
+		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
+	}
+
 	$(".giveaway__row-inner-wrap").each(function(index, element)
 	{
-		var ID = getAppIDfromLink($("a.giveaway__icon")[index].href);
-		if (ID != null) {
-			var Name = $($(".giveaway__heading__name")[index]).text();
+		var url = $(element).find("a.giveaway__icon").attr("href");
+		if(url != null)
+		{
+			var ID = getAppIDfromLink(url);
+			
+			var Name = $(element).find(".giveaway__heading__name").text();
 			var target = $(element).find(".giveaway__heading");
 
 			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
-			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
+			var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
+			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
 
-			//I assume app will have zero at the end ID, and package is non zero.Need more research.
-			if(ID.charAt(ID.length-1) == "0") 
-				getTradingCardStatus(tagCard, ID);
+			if(isAppOrPackage(url))
+			{
+				getTradingCardStatus(ID, tagCard);
+				getAchievementStatus(ID, tagAchievement);
+			}
 			else
-				getTradingCardStatusFromPackage(tagCard, ID);
-			
-			getBundleStatus(tagBundle, ID, Name);
+			{
+				tagCard.setAttribute("href", url);
+				tagAchievement.setAttribute("href", url);
+				getSteamCategoriesFromPackage(ID, tagCard, tagAchievement);
+			}
+
+			getBundleStatus(ID, Name, tagBundle);
 		}
 	});
 }
@@ -107,52 +203,134 @@ function createTag(_class, title, text, href, divTarget)
 	tag.setAttribute("href", href);
 	tag.innerHTML = text;
 
-	divTarget.append(tag);
-
+	$(divTarget).after(tag);
 	return tag;
 }
 
-function getAppIDfromImg(link)
+function displayElems(elems)
 {
-//	http://cdn.akamai.steamstatic.com/steam/apps/269270/header_292x136.jpg
-	var url = link.split("/");
-	return url[url.length-2];
+	$(elems).css("display", "inline-block");
 }
 
-function getAppIDfromLink(link)
+function getTradingCardStatus(appID, elems)
 {
-//	http://store.steampowered.com/app/403570/	
-	var url = link.split("/");
-	return url[url.length-2];
-}
-
-function getTradingCardStatus(elems, appID)
-{
-	//TODO: Check if the game is saved, if no then request to steam
-	$.ajax({
-		url: linkGameAPI+appID,
-		datatype: "jsonp",
-		complete: function(data)
-		{
-			var obj = JSON.parse(data.responseText)[appID].data.categories;
-			for(i=0; i<obj.length; i++)
+	var jsonCards = GM_getValue("cards-" + appID, "");
+	if(!needRequest(jsonCards))
+	{
+		if(JSON.parse(jsonCards).val)
+			displayElems(elems);
+	}
+	else
+	{
+		console.log("request card " + appID);
+		GM_xmlhttpRequest({
+			method: "GET",
+			timeout: 10000,
+			url: linkGameAPI+appID,
+			onload: function(data) 
 			{
-				if(obj[i].id == "29")
+				var obj = JSON.parse(data.responseText)[appID].data;
+				if(obj == null) 
 				{
-					//TODO : Save appID + true ke local cache
-					$(elems).css("display", "block");
-					break;
+					console.log("apps " + appID + " does not have store page or does not exist");
+					saveData("cards-" + appID, false);
+				}
+				else
+				{
+					obj =obj.categories;
+					for(i=0; i<obj.length; i++)
+					{
+						if(obj[i].id == "29")
+						{
+							displayElems(elems);
+							saveData("cards-" + appID, true);
+							return true; //exit function
+						}
+					}
+					saveData("cards-" + appID, false);
 				}
 			}
-		//TODO : Save appID + false + expire time ke local cache
-		}
-	});
+		});
+	}
 }
 
-function getBundleStatus(elems, appID, appName)
+function getAchievementStatus(appID, elems)
 {
-	//TODO: Check if the game is saved, if no then request to steam
-	$.get( linkBundle+appName, function( data ) {
+	var jsonAchievement = GM_getValue("achievements-" + appID, "");
+	if(!needRequest(jsonAchievement))
+	{
+		if(JSON.parse(jsonAchievement).val)
+			displayElems(elems);
+	}
+	else
+	{
+		console.log("request achievement " + appID);
+		GM_xmlhttpRequest({
+			method: "GET",
+			timeout: 10000,
+			url: linkGameAPI+appID,
+			onload: function(data) 
+			{
+				var obj = JSON.parse(data.responseText)[appID].data;
+				if(obj == null) 
+				{
+					console.log("apps " + appID + " does not have store page or does not exist");
+					saveData("achievements-" + appID, false);
+				}
+				else
+				{
+					obj =obj.categories;
+					for(i=0; i<obj.length; i++)
+					{
+						if(obj[i].id == "22")
+						{
+							displayElems(elems);
+							saveData("achievements-" + appID, true);
+							return true; //exit function
+						}
+					}
+					saveData("achievements-" + appID, false);
+				}
+			}
+		});
+	}
+}
+
+function getBundleStatus(appID, appName, elems)
+{
+	var jsonBundle = GM_getValue("bundled-" + appID, "");
+	if(!needRequest(jsonBundle))
+	{
+		if(JSON.parse(jsonBundle).val)
+			displayElems(elems);
+	}
+	else
+	{
+		console.log("request bundle " + appID);
+		$.get( linkBundle+appName, function(data) {
+			var gamesfound = $(data).find(".table__column__secondary-link");
+			for(i=0; i<$(gamesfound).length; i++)
+			{
+				var url = $(gamesfound)[i].href;
+				var ID = getAppIDfromLink(url);
+
+				if(appID == ID)
+				{
+					//TODO : Save appID + true ke local cache
+					displayElems(elems);
+					saveData("bundled-" + appID, true);
+					return true; //exit function
+				}
+			}
+			saveData("bundled-" + appID, false);
+		});
+	}
+}
+
+function getHiddenStatus(appID, appName, elems)
+{
+	console.log("request hidden " + appID);
+	$.get( linkHidden+appName, function(data) {
 		var gamesfound = $(data).find(".table__column__secondary-link");
 		for(i=0; i<$(gamesfound).length; i++)
 		{
@@ -162,25 +340,117 @@ function getBundleStatus(elems, appID, appName)
 			if(appID == ID)
 			{
 				//TODO : Save appID + true ke local cache
-				$(elems).css("display", "block");
-				break;
+				displayElems(elems);
+				return true; //exit function
 			}
 		}
-		//TODO : Save appID + false + expire time ke local cache
 	});
 }
 
-function getTradingCardStatusFromPackage(elems, appID) //Need more research
+function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement) //Need more research
 {
 	//TODO: Check if the game is saved, if no then request to steam
-	$.ajax({
+	GM_xmlhttpRequest({
+		method: "GET",
+		timeout: 10000,
 		url: linkPackAPI+appID,
-		datatype: "jsonp",
-		complete: function(data)
+		onload: function(data) 
 		{
-			var ID = JSON.parse(data.responseText)[appID].data.apps[0].id;
-			getTradingCardStatus(elems, ID);
-			//TODO : Save appID + false + expire time ke local cache
+			var IDs = JSON.parse(data.responseText)[appID].data;
+			if(IDs == null) console.log("package " + appID + " does not exist");
+			else
+			{
+				IDs = IDs.apps;
+				$.each(IDs, function(index)
+				{
+					getTradingCardStatus(IDs[index].id, tagCard);
+					getAchievementStatus(IDs[index].id, tagAchievement);
+					//TODO : Save appID + false + expire time ke local cache
+				});
+			}
 		}
 	});
+}
+
+function getAppIDfromLink(link)
+{
+//	http://store.steampowered.com/app/403570/	
+	var url = link.split("/");
+	return url[url.length-2];
+}
+
+function isAppOrPackage(link)
+{
+//	store.steampowered.com/app/403570/	
+	var pattern = /\/app\/|\/apps\//;
+	return pattern.test(link);
+}
+
+function saveData(name, val)
+{
+	var today = new Date().toJSON().slice(0,10);
+	var data = {val:val, savedDate:today};
+	GM_setValue(name, JSON.stringify(data));
+}
+
+function needRequest(json)
+{
+	if(json == "")
+		return true;
+	else
+	{
+		var obj = JSON.parse(json);
+		if(obj.val)
+			return false;
+		else
+		{
+			var today = new Date().toJSON().slice(0,10);
+			if(obj.savedDate == today)
+				return false;
+			else
+				return true;
+		}
+	}
+}
+
+function NewGiveawayDivUpdated(event)
+{
+	if (event.type == "DOMNodeInserted") //show bundle tag for shown game
+    {
+    	var gamesfound = $(".table__row-inner-wrap");
+    	$(".tags").remove();
+        $(".table__row-inner-wrap").each(function(index, element)
+        {
+			var url = $(element).find("a.table__column__secondary-link").text();
+			var ID = getAppIDfromLink(url);
+			var Name = $(element).find(".table__column__heading").text();
+			var Target = $(element).find(".table__column--width-fill");
+
+			$(".js__autocomplete-data").off("DOMNodeInserted");
+			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
+			$(tagBundle).css("float", "right");
+			getBundleStatus(ID, Name, tagBundle);
+        });
+        if(gamesfound.length > 0)
+        {
+        	$(".js__autocomplete-data").on("DOMNodeRemoved", NewGiveawayDivUpdated);
+
+			console.log($(".table__row-inner-wrap"));
+			$(".table__row-inner-wrap").on("click", function(event)
+			{
+				var url = $(this).find("a.table__column__secondary-link").text();
+				var ID = getAppIDfromLink(url);
+				var Name = $(this).find(".table__column__heading").text();
+				var Target = $(".js__autocomplete-name")[0];
+				tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
+				getBundleStatus(ID, Name, tagBundle);
+			});
+        }
+    }
+    else if (event.type == "DOMNodeRemoved")//show / remove tag of selected game
+    {
+        $(".js__autocomplete-data").off("DOMNodeRemoved");
+        $(".table__row-inner-wrap").off("click");
+        $(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
+    }
 }

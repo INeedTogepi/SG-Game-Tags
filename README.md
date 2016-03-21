@@ -51,3 +51,4 @@ The script requires :
   - Show all / Show bundled games / Show Non bundled games.
 - Error handling for games that don't have store page or games with packageID instead of appID.
 - Compatibility to endless scroll giveaway list (Easy Steamgifts and some userscript do this).
+- User Preferences to turn off/on tags & toggle between icon/text.

@@ -53,7 +53,7 @@ const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=ca
 
 const ClassCard = "tags tags-green";
 const TitleCard = "This game has trading cards";
-const TextCard = "Trading Cards";
+const TextCard = "Cards";
 
 const ClassBundle = "tags tags-red";
 const TitleBundle = "This game is considered as bundled by Steamgifts";
@@ -87,7 +87,6 @@ function main()
 		if (url != null) //if game doesn't have appID e.g Humble Indie Bundle
 		{ 
 			var ID = getAppIDfromLink(url);
-
 			var Name = $(".featured__heading__medium").text();
 			var target = $(".featured__heading");
 
@@ -334,10 +333,9 @@ function getHiddenStatus(appID, appName, elems)
 		var gamesfound = $(data).find(".table__column__secondary-link");
 		for(i=0; i<$(gamesfound).length; i++)
 		{
-			var url = $(gamesfound)[i].href;
-			var ID = getAppIDfromLink(url);
-
-			if(appID == ID)
+			var IDs = JSON.parse(data.responseText)[appID].data;
+			if(IDs == null) console.log("package " + appID + " does not exist");
+			else
 			{
 				//TODO : Save appID + true ke local cache
 				displayElems(elems);
@@ -435,7 +433,6 @@ function NewGiveawayDivUpdated(event)
         {
         	$(".js__autocomplete-data").on("DOMNodeRemoved", NewGiveawayDivUpdated);
 
-			console.log($(".table__row-inner-wrap"));
 			$(".table__row-inner-wrap").on("click", function(event)
 			{
 				var url = $(this).find("a.table__column__secondary-link").text();

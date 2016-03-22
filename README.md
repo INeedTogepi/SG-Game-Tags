@@ -1,22 +1,19 @@
 # SG Game Tags
 
-SG Game Tags is a userscript to show tags if the game has trading cards or is bundled by SG.
+I name it SG Game Tags. I actually named it SGTags, but it is [already used](http://www.steamgifts.com/discussion/SQ56V/userscripts-enhancing-my-sg-experience). And I don't know what better word to describe this script.
 
 # [Download](https://greasyfork.org/en/scripts/18047-sg-game-tags)
 
-Currently it doesn't support endless scroll. 
-
-The script requires :
-- [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) for Chrome
-- [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox
-- [Violentmonkey](https://addons.opera.com/en/extensions/details/violent-monkey/) for Opera
-- [GreaseKit](http://www.macupdate.com/app/mac/20718/greasekit) for Safari
-- recommended 1366px screen width or more.
-
 ## Features
-- Shows "Cards" tag if the game has trading cards.
+- Shows "Trading Cards" tag if the game has trading cards.
+- Shows "Achievements" tag if the game has steam achievements.
 - Shows "Bundled" tag if the game is marked as bundled by SG.
-- Tags are links. "Cards" tag will open steamcardexchange inventory, and "Bundled" tag will open http://www.steamgifts.com/bundle-games with corresponding game.
+- Shows "Hidden" tag if the game is in your SG filter list.
+- Tags are links :
+  - "Trading Cards" tag will open steamcardexchange inventory. 
+  - "Achievements" tag will open steam achievements of the game.
+  - "Bundled" tag will open http://www.steamgifts.com/bundle-games with corresponding game.
+  - "Hidden" tag will open http://www.steamgifts.com/account/settings/giveaways/filters with corresponding game.
 
 ## Current Tags
 | Tags | Description|
@@ -26,6 +23,26 @@ The script requires :
 | "Bundled" | The game is marked as bundled by Steamgifts |
 | "Hidden" | This game is in your filter list |
 
+The script requires :
+- [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) for Chrome
+- [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox
+- [Violentmonkey](https://addons.opera.com/en/extensions/details/violent-monkey/) for Opera
+- [GreaseKit](http://www.macupdate.com/app/mac/20718/greasekit) for Safari
+- Recommended 1366px screen width or more.
+
+"Hidden" tag is only shown inside giveaway page.
+
+The script saves game data for next uses. It saves data forever if the game is in bundle list. I assume once the game is marked as bundled, it will always be. If the game is not bundled, the script will save it as false for 1 day use.
+It does the same for trading cards and achievements data.
+It doesn't save data for hidden games, because you can always remove the game from filter.
+
+Some games with wrong store page link won't show trading card status. e.g Left 4 Dead Bundle and Portal Bundle.
+Portal Bundle store page should be [this](http://store.steampowered.com/bundle/234/), but SG shows [this](http://store.steampowered.com/sub/7932/)
+I can't do anything about that, unless SG changes it.
+
+The script still doesn't support endless scroll. I still don't know how to implement this. :(
+
+Feedback and bug report are always appreciated.
 
 ## Screenshots
 ![1](http://i.imgur.com/3yCku6P.jpg)

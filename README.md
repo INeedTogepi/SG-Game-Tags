@@ -21,15 +21,29 @@ The script requires :
 ## Current Tags
 | Tags | Description|
 |:---:|---|
-| "Bundled" | The game is marked as bundled by Steamgifts. |
-| "Cards" | The game has Steam trading cards.  |
+| "Trading Cards" | The game has Steam trading cards |
+| "Achievements" | This game has steam achievements |
+| "Bundled" | The game is marked as bundled by Steamgifts |
+| "Hidden" | This game is in your filter list |
+
 
 ## Screenshots
-![1](http://i.imgur.com/tBfc60B.png)
-![2](http://i.imgur.com/GTlUVjU.png)
-![3](http://i.imgur.com/myPzhN2.jpg)
+![1](http://i.imgur.com/3yCku6P.jpg)
+![2](http://i.imgur.com/5ISiLlP.jpg)
+![3](http://i.imgur.com/mBw035b.jpg)
+![4](http://i.imgur.com/YesE4Wl.jpg)
+![5](http://i.imgur.com/7kPq8Ca.jpg)
+![6](http://i.imgur.com/yTF7oqt.jpg)
+![7](http://i.imgur.com/IxY9TmK.jpg)
+![8](http://i.imgur.com/GBz0Yua.jpg)
 
 ## Changelogs
+2.0
+- Added support to "created", "entered", "won", "filters", "new", and community wishlist page.
+- Change tags location to below the game's title. Now I can add more tags. So "Cards" tag changed back to "Trading Cards".
+- Added Achievements & Hidden tags. Hidden tags only appear in giveaway page.
+- Change tags link for packages, now opens steam storepage.
+
 1.0
 - Requested data is now saved. The scripts now assume if the game has trading cards or is bundled, it will always be.
 - The script now checks all of the games in package to see if one of them has trading cards.
@@ -44,16 +58,17 @@ The script requires :
 ## To Do List
 - ~~Save data as cache for better performance and to avoid making too much request to steam and SG.~~ (done)
 - ~~Error handling for games that don't have store page or games with packageID instead of appID.~~ (done)
-- Add tags in : (They have different style from other giveaway pages and hard to place my tags there)
-  - http://www.steamgifts.com/giveaways/created,
-  - http://www.steamgifts.com/giveaways/entered, 
-  - http://www.steamgifts.com/giveaways/won,
-  - http://www.steamgifts.com/account/settings/giveaways/filters
-  - http://www.steamgifts.com/giveaways/new (this one might be a even harder)
+- ~~Add tags in :~~ (done)
+  - ~~http://www.steamgifts.com/giveaways/created,~~ (done)
+  - ~~http://www.steamgifts.com/giveaways/entered,~~ (done)
+  - ~~http://www.steamgifts.com/giveaways/won,~~ (done)
+  - ~~http://www.steamgifts.com/account/settings/giveaways/filters~~
+  - ~~http://www.steamgifts.com/giveaways/new~~ (done)
+  - ~~http://www.steamgifts.com/giveaways/wishlist~~ (done)
+- User Preferences to enable/disable tags.
+- Show steam user reviews score.
 - Sidebar giveaway filter :
   - Show all / Show games with Trading card only.
   - Show all / Show bundled games / Show Non bundled games.
-- Error handling for games that don't have store page or games with packageID instead of appID.
+  - Show all / Show games with achievement only.
 - Compatibility to endless scroll giveaway list (Easy Steamgifts and some userscript do this).
-- User Preferences to turn enable/disable tags.
-- Show steam user reviews score (I'm not sure to implement it in this script. I might make a separate userscript for this)

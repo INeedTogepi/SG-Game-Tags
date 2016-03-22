@@ -36,7 +36,8 @@ myCSS = '<style> \
 		.tags-green { background-color: #3AA435; } \
 		.tags-red { background-color: #f44336; } \
 		.tags-blue { background-color: #305AC9; } \
-		.tags-black { background-color: #0a1229; } \
+		.tags-purple { background-color: #6600cc; } \
+		.tags-brown { background-color: #A0522D; } \
 	</style>';
 
 $("head").append(myCSS);
@@ -56,18 +57,16 @@ const TitleCard = "This game has trading cards";
 const TextCard = "Cards";
 
 const ClassBundle = "tags tags-red";
-const TitleBundle = "This game is considered as bundled by Steamgifts";
+const TitleBundle = "This game is marked as bundled by Steamgifts";
 const TextBundle = "Bundled";
 
 const ClassAchievement = "tags tags-blue";
-const TitleAchievement = "This game has achievements";
+const TitleAchievement = "This game has steam achievements";
 const TextAchievement = "Achievements";
 
-const ClassHidden = "tags tags-black";
+const ClassHidden = "tags tags-brown";
 const TitleHidden = "This game is in your filter list";
 const TextHidden = "Hidden";
-
-var flagNewGiveaway = false;
 
 main();
 
@@ -113,7 +112,11 @@ function main()
 				getHiddenStatus(ID, Name, tagHidden);
 		}
 	}
-	else if((currLoc[3] == "giveaways" && (/created|entered|won/.test(currLoc[4]))) || currLoc[6] == "filters")
+	else if(currLoc[3] == "giveaways" && currLoc[4] == "new") // http://www.steamgifts.com/giveaways/new
+	{
+		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
+	}
+	else if((currLoc[3] == "giveaways" && !(/search*/.test(currLoc[4]))) || currLoc[6] == "filters")
 	{
 		$(".table__row-inner-wrap").each(function(index, element)
 		{
@@ -155,10 +158,6 @@ function main()
 				//open giveaway page, and then get appID from image
 			}
 		});
-	}
-	else if(currLoc[3] == "giveaways" && currLoc[4] == "new") // http://www.steamgifts.com/giveaways/new
-	{
-		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
 	}
 
 	$(".giveaway__row-inner-wrap").each(function(index, element)
@@ -236,16 +235,22 @@ function getTradingCardStatus(appID, elems)
 				}
 				else
 				{
-					obj =obj.categories;
-					for(i=0; i<obj.length; i++)
+					obj = obj.categories;
+					if(obj != null)
 					{
-						if(obj[i].id == "29")
+						for(i=0; i<obj.length; i++)
 						{
-							displayElems(elems);
-							saveData("cards-" + appID, true);
-							return true; //exit function
+							if(obj[i].id == "29")
+							{
+								displayElems(elems);
+								saveData("cards-" + appID, true);
+								return true; //exit function
+							}
 						}
 					}
+					else 
+						console.log("apps " + appID + " does not have categories");
+					
 					saveData("cards-" + appID, false);
 				}
 			}
@@ -278,16 +283,22 @@ function getAchievementStatus(appID, elems)
 				}
 				else
 				{
-					obj =obj.categories;
-					for(i=0; i<obj.length; i++)
+					obj = obj.categories;
+					if(obj != null)
 					{
-						if(obj[i].id == "22")
+						for(i=0; i<obj.length; i++)
 						{
-							displayElems(elems);
-							saveData("achievements-" + appID, true);
-							return true; //exit function
+							if(obj[i].id == "22")
+							{
+								displayElems(elems);
+								saveData("achievements-" + appID, true);
+								return true; //exit function
+							}
 						}
 					}
+					else 
+						console.log("apps " + appID + " does not have categories");
+
 					saveData("achievements-" + appID, false);
 				}
 			}
@@ -329,13 +340,14 @@ function getBundleStatus(appID, appName, elems)
 function getHiddenStatus(appID, appName, elems)
 {
 	console.log("request hidden " + appID);
-	$.get( linkHidden+appName, function(data) {
-		var gamesfound = $(data).find(".table__column__secondary-link");
+	$.get( linkHidden+appName, function(data) 
+	{
+		var gamesfound = $(data).find("a.table__column__secondary-link");
 		for(i=0; i<$(gamesfound).length; i++)
 		{
-			var IDs = JSON.parse(data.responseText)[appID].data;
-			if(IDs == null) console.log("package " + appID + " does not exist");
-			else
+			var url = $(gamesfound)[i].href;
+			var ID = getAppIDfromLink(url);
+			if(appID == ID)
 			{
 				//TODO : Save appID + true ke local cache
 				displayElems(elems);
@@ -414,11 +426,11 @@ function needRequest(json)
 function NewGiveawayDivUpdated(event)
 {
 	if (event.type == "DOMNodeInserted") //show bundle tag for shown game
-    {
-    	var gamesfound = $(".table__row-inner-wrap");
-    	$(".tags").remove();
-        $(".table__row-inner-wrap").each(function(index, element)
-        {
+	{
+		var gamesfound = $(".table__row-inner-wrap");
+		$(".tags").remove();
+		$(".table__row-inner-wrap").each(function(index, element)
+		{
 			var url = $(element).find("a.table__column__secondary-link").text();
 			var ID = getAppIDfromLink(url);
 			var Name = $(element).find(".table__column__heading").text();
@@ -428,10 +440,10 @@ function NewGiveawayDivUpdated(event)
 			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
 			$(tagBundle).css("float", "right");
 			getBundleStatus(ID, Name, tagBundle);
-        });
-        if(gamesfound.length > 0)
-        {
-        	$(".js__autocomplete-data").on("DOMNodeRemoved", NewGiveawayDivUpdated);
+		});
+		if(gamesfound.length > 0)
+		{
+			$(".js__autocomplete-data").on("DOMNodeRemoved", NewGiveawayDivUpdated);
 
 			$(".table__row-inner-wrap").on("click", function(event)
 			{
@@ -442,12 +454,12 @@ function NewGiveawayDivUpdated(event)
 				tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
 				getBundleStatus(ID, Name, tagBundle);
 			});
-        }
-    }
-    else if (event.type == "DOMNodeRemoved")//show / remove tag of selected game
-    {
-        $(".js__autocomplete-data").off("DOMNodeRemoved");
-        $(".table__row-inner-wrap").off("click");
-        $(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
-    }
+		}
+	}
+	else if (event.type == "DOMNodeRemoved")//show / remove tag of selected game
+	{
+		$(".js__autocomplete-data").off("DOMNodeRemoved");
+		$(".table__row-inner-wrap").off("click");
+		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
+	}
 }

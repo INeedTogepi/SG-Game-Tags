@@ -54,7 +54,7 @@ const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=ca
 
 const ClassCard = "tags tags-green";
 const TitleCard = "This game has trading cards";
-const TextCard = "Cards";
+const TextCard = "Trading Cards";
 
 const ClassBundle = "tags tags-red";
 const TitleBundle = "This game is marked as bundled by Steamgifts";

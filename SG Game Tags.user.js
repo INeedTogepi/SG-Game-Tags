@@ -48,6 +48,7 @@ const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid
 const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievements/";
 const linkBundle = "http://www.steamgifts.com/bundle-games/search?q=";
 const linkHidden = "http://www.steamgifts.com/account/settings/giveaways/filters/search?q="
+const linkSetting = "http://www.steamgifts.com/account/settings/giveaways";
 
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories&appids=";
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=categories&packageids=";
@@ -189,6 +190,11 @@ function main()
 			getBundleStatus(ID, Name, tagBundle);
 		}
 	});
+
+	if(window.location.href == linkSetting)
+	{
+		UserPreferences();
+	}
 }
 
 function createTag(_class, title, text, href, divTarget)
@@ -462,4 +468,9 @@ function NewGiveawayDivUpdated(event)
 		$(".table__row-inner-wrap").off("click");
 		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
 	}
+}
+
+function UserPreferences() //create more option in settings/giveaways
+{
+	
 }

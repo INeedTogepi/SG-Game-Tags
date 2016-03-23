@@ -16,11 +16,11 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
   - "Hidden" tag will open http://www.steamgifts.com/account/settings/giveaways/filters with corresponding game.
 
 ## Current Tags
-| Tags | Description|
+| Tags | Caption |
 |:---:|---|
-| "Trading Cards" | The game has Steam trading cards |
+| "Trading Cards" | This game has trading cards |
 | "Achievements" | This game has steam achievements |
-| "Bundled" | The game is marked as bundled by Steamgifts |
+| "Bundled" | This game is marked as bundled by Steamgifts |
 | "Hidden" | This game is in your filter list |
 
 The script requires :
@@ -28,7 +28,6 @@ The script requires :
 - [Greasemonkey](https://addons.mozilla.org/en-us/firefox/addon/greasemonkey/) for Firefox
 - [Violentmonkey](https://addons.opera.com/en/extensions/details/violent-monkey/) for Opera
 - [GreaseKit](http://www.macupdate.com/app/mac/20718/greasekit) for Safari
-- Recommended 1366px screen width or more.
 
 "Hidden" tag is only shown inside giveaway page.
 
@@ -79,7 +78,7 @@ Feedback and bug report are always appreciated.
   - ~~http://www.steamgifts.com/giveaways/created,~~ (done)
   - ~~http://www.steamgifts.com/giveaways/entered,~~ (done)
   - ~~http://www.steamgifts.com/giveaways/won,~~ (done)
-  - ~~http://www.steamgifts.com/account/settings/giveaways/filters~~
+  - ~~http://www.steamgifts.com/account/settings/giveaways/filters~~ (done)
   - ~~http://www.steamgifts.com/giveaways/new~~ (done)
   - ~~http://www.steamgifts.com/giveaways/wishlist~~ (done)
 - User Preferences to enable/disable tags.

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      2.0
+// @version      2.3
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -48,7 +48,6 @@ const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid
 const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievements/";
 const linkBundle = "http://www.steamgifts.com/bundle-games/search?q=";
 const linkHidden = "http://www.steamgifts.com/account/settings/giveaways/filters/search?q="
-const linkSetting = "http://www.steamgifts.com/account/settings/giveaways";
 
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories&appids=";
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=categories&packageids=";
@@ -81,7 +80,7 @@ function main()
 		var url;
 		if(currLoc[3] == "giveaway") //giveaway page
 			url = $(".featured__inner-wrap a")[0].href;
-		else if(currLoc[3] != "user") //homepage
+		else if(currLoc[3] != "user" && currLoc[3] != "group") //homepage
 			url = $(".featured__inner-wrap a img")[0].src;
 
 		if (url != null) //if game doesn't have appID e.g Humble Indie Bundle
@@ -190,11 +189,6 @@ function main()
 			getBundleStatus(ID, Name, tagBundle);
 		}
 	});
-
-	if(window.location.href == linkSetting)
-	{
-		UserPreferences();
-	}
 }
 
 function createTag(_class, title, text, href, divTarget)
@@ -315,6 +309,7 @@ function getAchievementStatus(appID, elems)
 function getBundleStatus(appID, appName, elems)
 {
 	var jsonBundle = GM_getValue("bundled-" + appID, "");
+	appName = appName.replace("+", "%2B");
 	if(!needRequest(jsonBundle))
 	{
 		if(JSON.parse(jsonBundle).val)
@@ -346,7 +341,8 @@ function getBundleStatus(appID, appName, elems)
 function getHiddenStatus(appID, appName, elems)
 {
 	console.log("request hidden " + appID);
-	$.get( linkHidden+appName, function(data) 
+	appName = appName.replace("+", "%2B");
+	$.get(linkHidden+appName, function(data) 
 	{
 		var gamesfound = $(data).find("a.table__column__secondary-link");
 		for(i=0; i<$(gamesfound).length; i++)
@@ -431,7 +427,7 @@ function needRequest(json)
 
 function NewGiveawayDivUpdated(event)
 {
-	if (event.type == "DOMNodeInserted") //show bundle tag for shown game
+	if(event.type == "DOMNodeInserted") //show bundle tag for shown game
 	{
 		var gamesfound = $(".table__row-inner-wrap");
 		$(".tags").remove();
@@ -462,15 +458,10 @@ function NewGiveawayDivUpdated(event)
 			});
 		}
 	}
-	else if (event.type == "DOMNodeRemoved")//show / remove tag of selected game
+	else if(event.type == "DOMNodeRemoved")//show / remove tag of selected game
 	{
 		$(".js__autocomplete-data").off("DOMNodeRemoved");
 		$(".table__row-inner-wrap").off("click");
 		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
 	}
-}
-
-function UserPreferences() //create more option in settings/giveaways
-{
-	
 }

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      2.3
+// @version      3.0
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -34,9 +34,9 @@ myCSS = '<style> \
 			display: none; \
 		} \
 		.tags-green { background-color: #3AA435; } \
-		.tags-red { background-color: #f44336; } \
+		.tags-red { background-color: #E9202A; } \
 		.tags-blue { background-color: #305AC9; } \
-		.tags-purple { background-color: #6600cc; } \
+		.tags-purple { background-color: #6600CC; } \
 		.tags-brown { background-color: #A0522D; } \
 	</style>';
 
@@ -68,6 +68,11 @@ const ClassHidden = "tags tags-brown";
 const TitleHidden = "This game is in your filter list";
 const TextHidden = "Hidden";
 
+var cbCards = GM_getValue("cbCards", true);
+var cbAchievement = GM_getValue("cbAchievement", true);
+var cbBundled = GM_getValue("cbBundled", true);
+var cbHidden = GM_getValue("cbHidden", true);
+
 main();
 
 function main()
@@ -83,7 +88,7 @@ function main()
 		else if(currLoc[3] != "user" && currLoc[3] != "group") //homepage
 			url = $(".featured__inner-wrap a img")[0].src;
 
-		if (url != null) //if game doesn't have appID e.g Humble Indie Bundle
+		if (url != null) //for game without appID e.g Humble Indie Bundle
 		{ 
 			var ID = getAppIDfromLink(url);
 			var Name = $(".featured__heading__medium").text();
@@ -96,8 +101,7 @@ function main()
 
 			if(isAppOrPackage(url))
 			{
-				getTradingCardStatus(ID, tagCard);
-				getAchievementStatus(ID, tagAchievement);
+				getSteamCategories(ID, tagCard, tagAchievement);
 			}
 			else
 			{
@@ -141,8 +145,7 @@ function main()
 				
 				if(isAppOrPackage(url)) 
 				{
-					getTradingCardStatus(ID, tagCard);
-					getAchievementStatus(ID, tagAchievement);
+					getSteamCategories(ID, tagCard, tagAchievement);
 				}
 				else
 				{
@@ -155,7 +158,7 @@ function main()
 			}
 			else //if image does not have appID
 			{
-				//open giveaway page, and then get appID from image
+				//TODO: open giveaway page, and then get appID from image
 			}
 		});
 	}
@@ -176,8 +179,7 @@ function main()
 
 			if(isAppOrPackage(url))
 			{
-				getTradingCardStatus(ID, tagCard);
-				getAchievementStatus(ID, tagAchievement);
+				getSteamCategories(ID, tagCard, tagAchievement);
 			}
 			else
 			{
@@ -189,6 +191,11 @@ function main()
 			getBundleStatus(ID, Name, tagBundle);
 		}
 	});
+
+	if(currLoc[3] == "account" && currLoc[5] == "giveaways")
+	{
+		initSetting();
+	}
 }
 
 function createTag(_class, title, text, href, divTarget)
@@ -210,17 +217,28 @@ function displayElems(elems)
 	$(elems).css("display", "inline-block");
 }
 
-function getTradingCardStatus(appID, elems)
+function getSteamCategories(appID, tagCard, tagAchievement)
 {
 	var jsonCards = GM_getValue("cards-" + appID, "");
-	if(!needRequest(jsonCards))
+	var jsonAchievement = GM_getValue("achievements-" + appID, "");
+
+	var reqCard = needRequest(jsonCards);
+	var reqAchievement = needRequest(jsonAchievement);
+
+	if(!reqCard && cbCards) // if app card is saved
 	{
 		if(JSON.parse(jsonCards).val)
-			displayElems(elems);
+			displayElems(tagCard);
 	}
-	else
+	if(!reqAchievement && cbAchievement) // if app achievement is saved
 	{
-		console.log("request card " + appID);
+		if(JSON.parse(jsonAchievement).val)
+			displayElems(tagAchievement);
+	}
+
+	if((reqCard && cbCards) || (reqAchievement && cbAchievement))
+	{
+		console.log("request steam " + appID);
 		GM_xmlhttpRequest({
 			method: "GET",
 			timeout: 10000,
@@ -232,74 +250,38 @@ function getTradingCardStatus(appID, elems)
 				{
 					console.log("apps " + appID + " does not have store page or does not exist");
 					saveData("cards-" + appID, false);
+					saveData("achievements-" + appID, false);
 				}
 				else
 				{
 					obj = obj.categories;
+					flagCard = false;
+					flagAchievement = false;
 					if(obj != null)
 					{
 						for(i=0; i<obj.length; i++)
 						{
-							if(obj[i].id == "29")
+							if(obj[i].id == "29" && reqCard)
 							{
-								displayElems(elems);
+								displayElems(tagCard);
 								saveData("cards-" + appID, true);
-								return true; //exit function
+								flagCard = true;
+							}
+							if(obj[i].id == "22" && reqAchievement)
+							{
+								displayElems(tagAchievement);
+								saveData("achievements-" + appID, true);
+								flagAchievement = true
 							}
 						}
 					}
 					else 
 						console.log("apps " + appID + " does not have categories");
 					
-					saveData("cards-" + appID, false);
-				}
-			}
-		});
-	}
-}
-
-function getAchievementStatus(appID, elems)
-{
-	var jsonAchievement = GM_getValue("achievements-" + appID, "");
-	if(!needRequest(jsonAchievement))
-	{
-		if(JSON.parse(jsonAchievement).val)
-			displayElems(elems);
-	}
-	else
-	{
-		console.log("request achievement " + appID);
-		GM_xmlhttpRequest({
-			method: "GET",
-			timeout: 10000,
-			url: linkGameAPI+appID,
-			onload: function(data) 
-			{
-				var obj = JSON.parse(data.responseText)[appID].data;
-				if(obj == null) 
-				{
-					console.log("apps " + appID + " does not have store page or does not exist");
-					saveData("achievements-" + appID, false);
-				}
-				else
-				{
-					obj = obj.categories;
-					if(obj != null)
-					{
-						for(i=0; i<obj.length; i++)
-						{
-							if(obj[i].id == "22")
-							{
-								displayElems(elems);
-								saveData("achievements-" + appID, true);
-								return true; //exit function
-							}
-						}
-					}
-					else 
-						console.log("apps " + appID + " does not have categories");
-
-					saveData("achievements-" + appID, false);
+					if(reqCard && !flagCard)
+						saveData("cards-" + appID, false);
+					if(reqAchievement && !flagAchievement)
+						saveData("achievements-" + appID, false);
 				}
 			}
 		});
@@ -308,80 +290,89 @@ function getAchievementStatus(appID, elems)
 
 function getBundleStatus(appID, appName, elems)
 {
-	var jsonBundle = GM_getValue("bundled-" + appID, "");
-	appName = appName.replace("+", "%2B");
-	if(!needRequest(jsonBundle))
+	if(cbBundled)
 	{
-		if(JSON.parse(jsonBundle).val)
-			displayElems(elems);
-	}
-	else
-	{
-		console.log("request bundle " + appID);
-		$.get( linkBundle+appName, function(data) {
-			var gamesfound = $(data).find(".table__column__secondary-link");
-			for(i=0; i<$(gamesfound).length; i++)
-			{
-				var url = $(gamesfound)[i].href;
-				var ID = getAppIDfromLink(url);
-
-				if(appID == ID)
+		var jsonBundle = GM_getValue("bundled-" + appID, "");
+		appName = appName.replace("+", "%2B");
+	
+		if(!needRequest(jsonBundle))
+		{
+			if(JSON.parse(jsonBundle).val)
+				displayElems(elems);
+		}
+		else
+		{
+			console.log("request bundle " + appID);
+			$.get( linkBundle+appName, function(data) {
+				var gamesfound = $(data).find(".table__column__secondary-link");
+				for(i=0; i<$(gamesfound).length; i++)
 				{
-					//TODO : Save appID + true ke local cache
-					displayElems(elems);
-					saveData("bundled-" + appID, true);
-					return true; //exit function
+					var url = $(gamesfound)[i].href;
+					var ID = getAppIDfromLink(url);
+
+					if(appID == ID)
+					{
+						//TODO : Save appID + true ke local cache
+						displayElems(elems);
+						saveData("bundled-" + appID, true);
+						return true; //exit function
+					}
 				}
-			}
-			saveData("bundled-" + appID, false);
-		});
+				saveData("bundled-" + appID, false);
+			});
+		}
 	}
 }
 
 function getHiddenStatus(appID, appName, elems)
 {
-	console.log("request hidden " + appID);
-	appName = appName.replace("+", "%2B");
-	$.get(linkHidden+appName, function(data) 
+	if(cbHidden)
 	{
-		var gamesfound = $(data).find("a.table__column__secondary-link");
-		for(i=0; i<$(gamesfound).length; i++)
+		console.log("request hidden " + appID);
+		appName = appName.replace("+", "%2B");
+		$.get(linkHidden+appName, function(data) 
 		{
-			var url = $(gamesfound)[i].href;
-			var ID = getAppIDfromLink(url);
-			if(appID == ID)
+			var gamesfound = $(data).find("a.table__column__secondary-link");
+			for(i=0; i<$(gamesfound).length; i++)
 			{
-				//TODO : Save appID + true ke local cache
-				displayElems(elems);
-				return true; //exit function
+				var url = $(gamesfound)[i].href;
+				var ID = getAppIDfromLink(url);
+				if(appID == ID)
+				{
+					//TODO : Save appID + true ke local cache
+					displayElems(elems);
+					return true; //exit function
+				}
 			}
-		}
-	});
+		});
+	}
 }
 
 function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement) //Need more research
 {
-	//TODO: Check if the game is saved, if no then request to steam
-	GM_xmlhttpRequest({
-		method: "GET",
-		timeout: 10000,
-		url: linkPackAPI+appID,
-		onload: function(data) 
-		{
-			var IDs = JSON.parse(data.responseText)[appID].data;
-			if(IDs == null) console.log("package " + appID + " does not exist");
-			else
+	if(cbCards || cbAchievement)
+	{
+		//TODO: Check if the game is saved, if no then request to steam
+		GM_xmlhttpRequest({
+			method: "GET",
+			timeout: 10000,
+			url: linkPackAPI+appID,
+			onload: function(data) 
 			{
-				IDs = IDs.apps;
-				$.each(IDs, function(index)
+				var IDs = JSON.parse(data.responseText)[appID].data;
+				if(IDs == null) console.log("package " + appID + " does not exist");
+				else
 				{
-					getTradingCardStatus(IDs[index].id, tagCard);
-					getAchievementStatus(IDs[index].id, tagAchievement);
-					//TODO : Save appID + false + expire time ke local cache
-				});
+					IDs = IDs.apps;
+					$.each(IDs, function(index)
+					{
+						getSteamCategories(IDs[index].id, tagCard, tagAchievement);
+						//TODO : Save appID + false + expire time ke local cache
+					});
+				}
 			}
-		}
-	});
+		});
+	}
 }
 
 function getAppIDfromLink(link)
@@ -464,4 +455,88 @@ function NewGiveawayDivUpdated(event)
 		$(".table__row-inner-wrap").off("click");
 		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
 	}
+}
+
+function initSetting()
+{
+	var n = $(".form__heading").length + 1;
+	var CheckIcon = '<i class="form__checkbox__default fa fa-circle-o"></i><i class="form__checkbox__hover fa fa-circle"></i><i class="form__checkbox__selected fa fa-check-circle"></i>';
+
+	var form__row_1 = document.createElement("div");
+	form__row_1.setAttribute("class", "form__row");
+
+		var form__heading_1 = document.createElement("div");
+		form__heading_1.setAttribute("class", "form__heading");
+
+			var form__heading__number_1 = document.createElement("div");
+			form__heading__number_1.setAttribute("class", "form__heading__number");
+			form__heading__number_1.innerHTML = n + ".";
+
+			var form__heading__text_1 = document.createElement("div");
+			form__heading__text_1.setAttribute("class", "form__heading__text");
+			form__heading__text_1.innerHTML = "[SG Game Tags] Which tags do you want to see?";
+
+		$(form__heading_1).append(form__heading__number_1).append(form__heading__text_1);
+
+		var form__row__indent_1 = document.createElement("div");
+		form__row__indent_1.setAttribute("class", "form__row__indent");
+
+			var form__checkbox_1 = createCheckBox("form__checkbox", CheckIcon + "Trading Cards", cbCards);
+			var form__checkbox_2 = createCheckBox("form__checkbox", CheckIcon + "Achievements", cbAchievement);
+			var form__checkbox_3 = createCheckBox("form__checkbox", CheckIcon + "Bundled", cbBundled);
+			var form__checkbox_4 = createCheckBox("form__checkbox", CheckIcon + "Hidden", cbHidden);
+
+			$(form__checkbox_1).click(function(){toggleCBTags(form__checkbox_1, "cbCards")});
+			$(form__checkbox_2).click(function(){toggleCBTags(form__checkbox_2, "cbAchievement")});
+			$(form__checkbox_3).click(function(){toggleCBTags(form__checkbox_3, "cbBundled")});
+			$(form__checkbox_4).click(function(){toggleCBTags(form__checkbox_4, "cbHidden")});
+
+		$(form__row__indent_1).append(form__checkbox_1).append(form__checkbox_2).append(form__checkbox_3).append(form__checkbox_4);
+
+	$(form__row_1).append(form__heading_1).append(form__row__indent_1);
+
+	$(".form__submit-button").before(form__row_1);
+}
+
+function createCheckBox(_class, _html, cbValue)
+{
+	var cb = document.createElement("div");
+	cb.setAttribute("class", _class);
+	cb.innerHTML = _html;
+	if(cbValue)
+		$(cb).addClass("is-selected");
+	else
+		$(cb).addClass("is-disabled");
+
+	return cb;
+}
+
+function toggleCBTags(cbElems, cbName)
+{
+	var cbValue;
+	if(cbName == "cbCards")
+	{
+		cbCards = !cbCards;
+		cbValue = cbCards;
+	}
+	else if(cbName == "cbAchievement")
+	{
+		cbAchievement = !cbAchievement;
+		cbValue = cbAchievement;
+	}
+	else if(cbName == "cbBundled")
+	{
+		cbBundled = !cbBundled;
+		cbValue = cbBundled;
+	}
+	else if(cbName == "cbHidden")
+	{
+		cbHidden = !cbHidden;
+		cbValue = cbHidden;
+	}
+	GM_setValue(cbName, cbValue);
+	if(cbValue)
+		$(cbElems).removeClass("is-disabled").addClass("is-selected");
+	else
+		$(cbElems).removeClass("is-selected").addClass("is-disabled");
 }

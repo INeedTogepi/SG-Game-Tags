@@ -54,6 +54,14 @@ Feedback and bug report are always appreciated.
 ![8](http://i.imgur.com/GBz0Yua.jpg)
 
 ## Changelogs
+3.0
+- Reoptimize request data to Steam for Trading Cards and Achievements tags, by 1 request for 1 game instead of separate request for Trading Cards and Achievements.
+
+
+2.1 - 2.3
+- Added support to http://www.steamgifts.com/group/
+- Fix bug for checking bundle if the game title contains (+)
+
 2.0
 - Added support to "created", "entered", "won", "filters", "new", and community wishlist page.
 - Change tags location to below the game's title. Now I can add more tags. So "Cards" tag changed back to "Trading Cards".

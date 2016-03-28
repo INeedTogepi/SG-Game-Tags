@@ -38,3 +38,21 @@
 		$(form__row__indent_2).append(row_item_1).append(row_item_2).append(row_item_3).append(row_item_4);
 
 	$(form__row_2).append(form__heading_2).append(form__row__indent_2);
+
+		.my__checkbox { \
+			cursor:pointer; \
+			color:#6b7a8c; \
+			padding:7px 0 \
+		} \
+		.my__checkbox i { \
+			margin-right:7px \
+		} \
+		.my__checkbox:not(:last-of-type) { \
+			border-bottom:1px dotted #d2d6e0 \
+		} \
+		.my__checkbox.is-selected { \
+			color:#4B72D4 \
+		} \
+		.my__checkbox:not(:hover) .form__checkbox__hover,.my__checkbox.is-selected .form__checkbox__hover,.my__checkbox:not(.is-selected) .form__checkbox__selected,.my__checkbox:hover .form__checkbox__default,.my__checkbox.is-selected .form__checkbox__default { \
+			display:none \
+		} \

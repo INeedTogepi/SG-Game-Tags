@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      3.0
+// @version      2.4
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -21,7 +21,7 @@ myCSS = '<style> \
 		.tags { \
 			color: #FFFFFF; \
 			text-decoration: none; \
-			border-radius: 20px; \
+			border-radius: 4px; \
 			padding-top: 2px; \
 			padding-bottom: 2px; \
 			padding-left: 5px; \
@@ -461,6 +461,7 @@ function initSetting()
 {
 	var n = $(".form__heading").length + 1;
 	var CheckIcon = '<i class="form__checkbox__default fa fa-circle-o"></i><i class="form__checkbox__hover fa fa-circle"></i><i class="form__checkbox__selected fa fa-check-circle"></i>';
+	var Color_picker = '<div><input id="textColor" type="color" value="" class="form-control" /></div>';
 
 	var form__row_1 = document.createElement("div");
 	form__row_1.setAttribute("class", "form__row");
@@ -471,6 +472,7 @@ function initSetting()
 			var form__heading__number_1 = document.createElement("div");
 			form__heading__number_1.setAttribute("class", "form__heading__number");
 			form__heading__number_1.innerHTML = n + ".";
+			n++;
 
 			var form__heading__text_1 = document.createElement("div");
 			form__heading__text_1.setAttribute("class", "form__heading__text");
@@ -495,7 +497,13 @@ function initSetting()
 
 	$(form__row_1).append(form__heading_1).append(form__row__indent_1);
 
+
 	$(".form__submit-button").before(form__row_1);
+
+	var desc = document.createElement("div");
+	desc.setAttribute("class", "form__input-description");
+	desc.innerHTML = "No need to press Save Changes button. It is automatically saved when the value changed.";
+	$(desc).appendTo([form__row__indent_1]);
 }
 
 function createCheckBox(_class, _html, cbValue)

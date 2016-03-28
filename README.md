@@ -52,11 +52,13 @@ Feedback and bug report are always appreciated.
 ![6](http://i.imgur.com/yTF7oqt.jpg)
 ![7](http://i.imgur.com/IxY9TmK.jpg)
 ![8](http://i.imgur.com/GBz0Yua.jpg)
+![9](http://i.imgur.com/5c7r3Yc.jpg)
 
 ## Changelogs
-3.0
-- Reoptimize request data to Steam for Trading Cards and Achievements tags, by 1 request for 1 game instead of separate request for Trading Cards and Achievements.
-
+2.4
+- Reoptimize request data to Steam for Trading Cards and Achievements tags. Now 1 request for 1 game instead of separate requests for Trading Cards and Achievements.
+- Added User Preferences to enable/disable tags in http://www.steamgifts.com/account/settings/giveaways.
+- Change tags border-radius from 20px to 4px to match SG theme.
 
 2.1 - 2.3
 - Added support to http://www.steamgifts.com/group/

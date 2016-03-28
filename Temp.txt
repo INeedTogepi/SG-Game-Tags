@@ -1,0 +1,40 @@
+
+	var form__row_2 = document.createElement("div");
+	form__row_2.setAttribute("class", "form__row");
+
+		var form__heading_2 = document.createElement("div");
+		form__heading_2.setAttribute("class", "form__heading");
+
+			var form__heading__number_2 = document.createElement("div");
+			form__heading__number_2.setAttribute("class", "form__heading__number");
+			form__heading__number_2.innerHTML = n + ".";
+			n++;
+
+			var form__heading__text_2 = document.createElement("div");
+			form__heading__text_2.setAttribute("class", "form__heading__text");
+			form__heading__text_2.innerHTML = "[SG Game Tags] Customize your tags color";
+
+		$(form__heading_2).append(form__heading__number_2).append(form__heading__text_2);
+
+		var form__row__indent_2 = document.createElement("div");
+		form__row__indent_2.setAttribute("class", "form__row__indent");
+
+			var row_item_1 = document.createElement("div");
+			row_item_1.setAttribute("class", "form__checkbox");
+			row_item_1.innerHTML = "Trading Cards" + Color_picker;
+
+			var row_item_2 = document.createElement("div");
+			row_item_2.setAttribute("class", "form__checkbox");
+			row_item_2.innerHTML = "Achievements";
+
+			var row_item_3 = document.createElement("div");
+			row_item_3.setAttribute("class", "form__checkbox");
+			row_item_3.innerHTML = "Bundled";
+
+			var row_item_4 = document.createElement("div");
+			row_item_4.setAttribute("class", "form__checkbox");
+			row_item_4.innerHTML = "Hidden";
+
+		$(form__row__indent_2).append(row_item_1).append(row_item_2).append(row_item_3).append(row_item_4);
+
+	$(form__row_2).append(form__heading_2).append(form__row__indent_2);

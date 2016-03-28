@@ -91,7 +91,7 @@ Feedback and bug report are always appreciated.
   - ~~http://www.steamgifts.com/account/settings/giveaways/filters~~ (done)
   - ~~http://www.steamgifts.com/giveaways/new~~ (done)
   - ~~http://www.steamgifts.com/giveaways/wishlist~~ (done)
-- User Preferences to enable/disable tags.
+- ~~User Preferences to enable/disable tags.~~ (done) http://www.steamgifts.com/account/settings/giveaways
 - Show steam user reviews score.
 - Sidebar giveaway filter :
   - Show all / Show games with Trading card only.

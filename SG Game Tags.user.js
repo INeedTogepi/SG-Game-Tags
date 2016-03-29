@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      2.4
+// @version      2.5
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -38,6 +38,19 @@ myCSS = '<style> \
 		.tags-blue { background-color: #305AC9; } \
 		.tags-purple { background-color: #6600CC; } \
 		.tags-brown { background-color: #A0522D; } \
+		.my__checkbox { \
+			cursor:pointer; \
+			padding:7px 0 \
+		} \
+		.my__checkbox i { \
+			margin-right:7px \
+		} \
+		.my__checkbox:not(:last-of-type) { \
+			border-bottom:1px dotted #d2d6e0 \
+		} \
+		.my__checkbox:not(:hover) .form__checkbox__hover,.my__checkbox.is-selected .form__checkbox__hover,.my__checkbox:not(.is-selected) .form__checkbox__selected,.my__checkbox:hover .form__checkbox__default,.my__checkbox.is-selected .form__checkbox__default { \
+			display:none \
+		} \
 	</style>';
 
 $("head").append(myCSS);
@@ -483,10 +496,11 @@ function initSetting()
 		var form__row__indent_1 = document.createElement("div");
 		form__row__indent_1.setAttribute("class", "form__row__indent");
 
-			var form__checkbox_1 = createCheckBox("form__checkbox", CheckIcon + "Trading Cards", cbCards);
-			var form__checkbox_2 = createCheckBox("form__checkbox", CheckIcon + "Achievements", cbAchievement);
-			var form__checkbox_3 = createCheckBox("form__checkbox", CheckIcon + "Bundled", cbBundled);
-			var form__checkbox_4 = createCheckBox("form__checkbox", CheckIcon + "Hidden", cbHidden);
+			var form__checkbox_1 = createCheckBox("my__checkbox", CheckIcon + "Trading Cards", cbCards);
+			var form__checkbox_2 = createCheckBox("my__checkbox", CheckIcon + "Achievements", cbAchievement);
+			var form__checkbox_3 = createCheckBox("my__checkbox", CheckIcon + "Bundled", cbBundled);
+			var form__checkbox_4 = createCheckBox("my__checkbox", CheckIcon + "Hidden", cbHidden);
+
 
 			$(form__checkbox_1).click(function(){toggleCBTags(form__checkbox_1, "cbCards")});
 			$(form__checkbox_2).click(function(){toggleCBTags(form__checkbox_2, "cbAchievement")});
@@ -494,9 +508,8 @@ function initSetting()
 			$(form__checkbox_4).click(function(){toggleCBTags(form__checkbox_4, "cbHidden")});
 
 		$(form__row__indent_1).append(form__checkbox_1).append(form__checkbox_2).append(form__checkbox_3).append(form__checkbox_4);
-
+		
 	$(form__row_1).append(form__heading_1).append(form__row__indent_1);
-
 
 	$(".form__submit-button").before(form__row_1);
 
@@ -504,6 +517,8 @@ function initSetting()
 	desc.setAttribute("class", "form__input-description");
 	desc.innerHTML = "No need to press Save Changes button. It is automatically saved when the value changed.";
 	$(desc).appendTo([form__row__indent_1]);
+
+	changeCBColor();
 }
 
 function createCheckBox(_class, _html, cbValue)
@@ -547,4 +562,15 @@ function toggleCBTags(cbElems, cbName)
 		$(cbElems).removeClass("is-disabled").addClass("is-selected");
 	else
 		$(cbElems).removeClass("is-selected").addClass("is-disabled");
+
+	changeCBColor();
+}
+
+function changeCBColor()
+{
+	var colorCBDisabled = $(".form__checkbox.is-disabled").css("color");
+	var colorCBSelected = $(".form__checkbox.is-selected").css("color");
+
+	$(".my__checkbox.is-disabled").css("color", colorCBDisabled);
+	$(".my__checkbox.is-selected").css("color", colorCBSelected);
 }

@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      2.5
+// @version      2.6
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
 // @match        http://www.steamgifts.com/*
-
+// @connect      steampowered.com
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @grant        GM_deleteValue 
 // @grant        GM_getValue 

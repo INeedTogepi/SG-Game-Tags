@@ -1,17 +1,17 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      2.6
+// @version      2.7
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
 // @match        http://www.steamgifts.com/*
 // @connect      steampowered.com
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
-// @grant        GM_deleteValue 
-// @grant        GM_getValue 
-// @grant        GM_listValues 
-// @grant        GM_setValue 
+// @grant        GM_deleteValue
+// @grant        GM_getValue
+// @grant        GM_listValues
+// @grant        GM_setValue
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
@@ -60,7 +60,7 @@ $("head").append(myCSS);
 const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid-";
 const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievements/";
 const linkBundle = "http://www.steamgifts.com/bundle-games/search?q=";
-const linkHidden = "http://www.steamgifts.com/account/settings/giveaways/filters/search?q="
+const linkHidden = "http://www.steamgifts.com/account/settings/giveaways/filters/search?q=";
 
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories&appids=";
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=categories&packageids=";
@@ -94,7 +94,7 @@ function main()
 
 	// shows trading card tag in featured game (header)
 	if($(".featured__inner-wrap").length == 1) //exclude page without featured inner wrap
-	{	
+	{
 		var url;
 		if(currLoc[3] == "giveaway") //giveaway page
 			url = $(".featured__inner-wrap a")[0].href;
@@ -102,7 +102,7 @@ function main()
 			url = $(".featured__inner-wrap a img")[0].src;
 
 		if (url != null) //for game without appID e.g Humble Indie Bundle
-		{ 
+		{
 			var ID = getAppIDfromLink(url);
 			var Name = $(".featured__heading__medium").text();
 			var target = $(".featured__heading");
@@ -124,7 +124,7 @@ function main()
 			}
 
 			getBundleStatus(ID, Name, tagBundle);
-			
+
 			if(currLoc[3] == "giveaway") //only trigger inside giveaway page, no need for homepage
 				getHiddenStatus(ID, Name, tagHidden);
 		}
@@ -133,18 +133,21 @@ function main()
 	{
 		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
 	}
-	else if((currLoc[3] == "giveaways" && !(/search*/.test(currLoc[4]))) || currLoc[6] == "filters")
+	else if((currLoc[3] == "giveaways" && !(/search*/.test(currLoc[4]))) || currLoc[6] == "filters" || currLoc[3] == "sales")
 	{
 		$(".table__row-inner-wrap").each(function(index, element)
 		{
 
 			var Name = $(element).find(".table__column__heading").text();
-			var target = $(element).find(".table__column--width-fill p:nth-child(1)");
+			var target = $(element).find(".table__column--width-fill > :first-child");
+			
+			//because sales don't use <p> thus tags will appears in line with title
+			if(currLoc[3] == "sales") target.css("display", "block");
 
 			var url;
 			if(currLoc[6] == "filters")
 				url = $(element).find("a.table__column__secondary-link").text();
-			else	
+			else
 				url = $($(element).find(".global__image-inner-wrap")[0]).css('background-image');
 
 			if(url != null) //if can get app ID from image
@@ -155,8 +158,8 @@ function main()
 				var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
 				var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
 				var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
-				
-				if(isAppOrPackage(url)) 
+
+				if(isAppOrPackage(url))
 				{
 					getSteamCategories(ID, tagCard, tagAchievement);
 				}
@@ -182,7 +185,7 @@ function main()
 		if(url != null)
 		{
 			var ID = getAppIDfromLink(url);
-			
+
 			var Name = $(element).find(".giveaway__heading__name").text();
 			var target = $(element).find(".giveaway__heading");
 
@@ -256,10 +259,10 @@ function getSteamCategories(appID, tagCard, tagAchievement)
 			method: "GET",
 			timeout: 10000,
 			url: linkGameAPI+appID,
-			onload: function(data) 
+			onload: function(data)
 			{
 				var obj = JSON.parse(data.responseText)[appID].data;
-				if(obj == null) 
+				if(obj == null)
 				{
 					console.log("apps " + appID + " does not have store page or does not exist");
 					saveData("cards-" + appID, false);
@@ -288,9 +291,9 @@ function getSteamCategories(appID, tagCard, tagAchievement)
 							}
 						}
 					}
-					else 
+					else
 						console.log("apps " + appID + " does not have categories");
-					
+
 					if(reqCard && !flagCard)
 						saveData("cards-" + appID, false);
 					if(reqAchievement && !flagAchievement)
@@ -307,7 +310,7 @@ function getBundleStatus(appID, appName, elems)
 	{
 		var jsonBundle = GM_getValue("bundled-" + appID, "");
 		appName = appName.replace("+", "%2B");
-	
+
 		if(!needRequest(jsonBundle))
 		{
 			if(JSON.parse(jsonBundle).val)
@@ -343,7 +346,7 @@ function getHiddenStatus(appID, appName, elems)
 	{
 		console.log("request hidden " + appID);
 		appName = appName.replace("+", "%2B");
-		$.get(linkHidden+appName, function(data) 
+		$.get(linkHidden+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
 			for(i=0; i<$(gamesfound).length; i++)
@@ -370,7 +373,7 @@ function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement) //Need mo
 			method: "GET",
 			timeout: 10000,
 			url: linkPackAPI+appID,
-			onload: function(data) 
+			onload: function(data)
 			{
 				var IDs = JSON.parse(data.responseText)[appID].data;
 				if(IDs == null) console.log("package " + appID + " does not exist");
@@ -390,14 +393,14 @@ function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement) //Need mo
 
 function getAppIDfromLink(link)
 {
-//	http://store.steampowered.com/app/403570/	
+//	http://store.steampowered.com/app/403570/
 	var url = link.split("/");
 	return url[url.length-2];
 }
 
 function isAppOrPackage(link)
 {
-//	store.steampowered.com/app/403570/	
+//	store.steampowered.com/app/403570/
 	var pattern = /\/app\/|\/apps\//;
 	return pattern.test(link);
 }
@@ -501,14 +504,13 @@ function initSetting()
 			var form__checkbox_3 = createCheckBox("my__checkbox", CheckIcon + "Bundled", cbBundled);
 			var form__checkbox_4 = createCheckBox("my__checkbox", CheckIcon + "Hidden", cbHidden);
 
-
 			$(form__checkbox_1).click(function(){toggleCBTags(form__checkbox_1, "cbCards")});
 			$(form__checkbox_2).click(function(){toggleCBTags(form__checkbox_2, "cbAchievement")});
 			$(form__checkbox_3).click(function(){toggleCBTags(form__checkbox_3, "cbBundled")});
 			$(form__checkbox_4).click(function(){toggleCBTags(form__checkbox_4, "cbHidden")});
 
 		$(form__row__indent_1).append(form__checkbox_1).append(form__checkbox_2).append(form__checkbox_3).append(form__checkbox_4);
-		
+
 	$(form__row_1).append(form__heading_1).append(form__row__indent_1);
 
 	$(".form__submit-button").before(form__row_1);

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      2.7
+// @version      2.8
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -61,6 +61,7 @@ const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid
 const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievements/";
 const linkBundle = "http://www.steamgifts.com/bundle-games/search?q=";
 const linkHidden = "http://www.steamgifts.com/account/settings/giveaways/filters/search?q=";
+const linkWishlist = "http://www.steamgifts.com/account/steam/wishlist/search?q=";
 
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories&appids=";
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=categories&packageids=";
@@ -81,10 +82,15 @@ const ClassHidden = "tags tags-brown";
 const TitleHidden = "This game is in your filter list";
 const TextHidden = "Hidden";
 
+const ClassWishlist = "tags tags-purple";
+const TitleWishlist = "This game is in your Steam wishlist";
+const TextWishlist = "Wishlist";
+
 var cbCards = GM_getValue("cbCards", true);
 var cbAchievement = GM_getValue("cbAchievement", true);
 var cbBundled = GM_getValue("cbBundled", true);
 var cbHidden = GM_getValue("cbHidden", true);
+var cbWishlist = GM_getValue("cbWishlist", true);
 
 main();
 
@@ -111,6 +117,7 @@ function main()
 			var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
 			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
 			var tagHidden = createTag(ClassHidden, TitleHidden, TextHidden, linkHidden+Name, tagBundle);
+			var tagWishlist = createTag(ClassWishlist, TitleWishlist, TextWishlist, linkWishlist+Name, tagHidden);
 
 			if(isAppOrPackage(url))
 			{
@@ -126,21 +133,30 @@ function main()
 			getBundleStatus(ID, Name, tagBundle);
 
 			if(currLoc[3] == "giveaway") //only trigger inside giveaway page, no need for homepage
+			{
 				getHiddenStatus(ID, Name, tagHidden);
+				getWishlistStatus(ID, Name, tagWishlist);
+			}
 		}
 	}
 	else if(currLoc[3] == "giveaways" && currLoc[4] == "new") // http://www.steamgifts.com/giveaways/new
 	{
 		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
 	}
-	else if((currLoc[3] == "giveaways" && !(/search*/.test(currLoc[4]))) || currLoc[6] == "filters" || currLoc[3] == "sales")
+	/*
+	http://www.steamgifts.com/giveaways/*
+	http://www.steamgifts.com/sales/*
+	http://www.steamgifts.com/account/settings/giveaways/filters
+	http://www.steamgifts.com/account/steam/*
+	*/
+	else if((currLoc[3] == "giveaways" && !(/search*/.test(currLoc[4]))) || currLoc[6] == "filters" || currLoc[3] == "sales" || currLoc[4] == "steam")
 	{
 		$(".table__row-inner-wrap").each(function(index, element)
 		{
 
 			var Name = $(element).find(".table__column__heading").text();
 			var target = $(element).find(".table__column--width-fill > :first-child");
-			
+
 			//because sales don't use <p> thus tags will appears in line with title
 			if(currLoc[3] == "sales") target.css("display", "block");
 
@@ -179,6 +195,12 @@ function main()
 		});
 	}
 
+	/*
+	http://www.steamgifts.com/
+	http://www.steamgifts.com/giveaways/search*
+	http://www.steamgifts.com/user/*
+	http://www.steamgifts.com/group/*
+	*/
 	$(".giveaway__row-inner-wrap").each(function(index, element)
 	{
 		var url = $(element).find("a.giveaway__icon").attr("href");
@@ -287,7 +309,7 @@ function getSteamCategories(appID, tagCard, tagAchievement)
 							{
 								displayElems(tagAchievement);
 								saveData("achievements-" + appID, true);
-								flagAchievement = true
+								flagAchievement = true;
 							}
 						}
 					}
@@ -347,6 +369,30 @@ function getHiddenStatus(appID, appName, elems)
 		console.log("request hidden " + appID);
 		appName = appName.replace("+", "%2B");
 		$.get(linkHidden+appName, function(data)
+		{
+			var gamesfound = $(data).find("a.table__column__secondary-link");
+			for(i=0; i<$(gamesfound).length; i++)
+			{
+				var url = $(gamesfound)[i].href;
+				var ID = getAppIDfromLink(url);
+				if(appID == ID)
+				{
+					//TODO : Save appID + true ke local cache
+					displayElems(elems);
+					return true; //exit function
+				}
+			}
+		});
+	}
+}
+
+function getWishlistStatus(appID, appName, elems)
+{
+	if(cbWishlist)
+	{
+		console.log("request wishlist " + appID);
+		appName = appName.replace("+", "%2B");
+		$.get(linkWishlist+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
 			for(i=0; i<$(gamesfound).length; i++)
@@ -503,13 +549,15 @@ function initSetting()
 			var form__checkbox_2 = createCheckBox("my__checkbox", CheckIcon + "Achievements", cbAchievement);
 			var form__checkbox_3 = createCheckBox("my__checkbox", CheckIcon + "Bundled", cbBundled);
 			var form__checkbox_4 = createCheckBox("my__checkbox", CheckIcon + "Hidden", cbHidden);
+			var form__checkbox_5 = createCheckBox("my__checkbox", CheckIcon + "Wishlist", cbWishlist);
 
-			$(form__checkbox_1).click(function(){toggleCBTags(form__checkbox_1, "cbCards")});
-			$(form__checkbox_2).click(function(){toggleCBTags(form__checkbox_2, "cbAchievement")});
-			$(form__checkbox_3).click(function(){toggleCBTags(form__checkbox_3, "cbBundled")});
-			$(form__checkbox_4).click(function(){toggleCBTags(form__checkbox_4, "cbHidden")});
+			$(form__checkbox_1).click(function(){toggleCBTags(form__checkbox_1, "cbCards");});
+			$(form__checkbox_2).click(function(){toggleCBTags(form__checkbox_2, "cbAchievement");});
+			$(form__checkbox_3).click(function(){toggleCBTags(form__checkbox_3, "cbBundled");});
+			$(form__checkbox_4).click(function(){toggleCBTags(form__checkbox_4, "cbHidden");});
+			$(form__checkbox_5).click(function(){toggleCBTags(form__checkbox_5, "cbWishlist");});
 
-		$(form__row__indent_1).append(form__checkbox_1).append(form__checkbox_2).append(form__checkbox_3).append(form__checkbox_4);
+		$(form__row__indent_1).append(form__checkbox_1).append(form__checkbox_2).append(form__checkbox_3).append(form__checkbox_4).append(form__checkbox_5);
 
 	$(form__row_1).append(form__heading_1).append(form__row__indent_1);
 
@@ -559,6 +607,12 @@ function toggleCBTags(cbElems, cbName)
 		cbHidden = !cbHidden;
 		cbValue = cbHidden;
 	}
+	else if(cbName == "cbWishlist")
+	{
+		cbWishlist = !cbWishlist;
+		cbValue = cbWishlist;
+	}
+
 	GM_setValue(cbName, cbValue);
 	if(cbValue)
 		$(cbElems).removeClass("is-disabled").addClass("is-selected");

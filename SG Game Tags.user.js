@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         SG Game Tags
-// @namespace    http://steamcommunity.com/id/Ruphine/
-// @version      2.9
+// @namespace    https://steamcommunity.com/id/Ruphine/
+// @version      2.9.1
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
-// @match        http://www.steamgifts.com/*
+// @match        *www.steamgifts.com/*
 // @connect      store.steampowered.com
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @grant        GM_deleteValue
@@ -59,9 +59,9 @@ $("head").append(myCSS);
 /* Constant Variables */
 const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid-";
 const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievements/";
-const linkBundle = "http://www.steamgifts.com/bundle-games/search?q=";
-const linkHidden = "http://www.steamgifts.com/account/settings/giveaways/filters/search?q=";
-const linkWishlist = "http://www.steamgifts.com/account/steam/wishlist/search?q=";
+const linkBundle = "https://www.steamgifts.com/bundle-games/search?q=";
+const linkHidden = "https://www.steamgifts.com/account/settings/giveaways/filters/search?q=";
+const linkWishlist = "https://www.steamgifts.com/account/steam/wishlist/search?q=";
 
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories&appids=";
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=categories&packageids=";
@@ -230,7 +230,7 @@ function main()
 		}
 	});
 
-	if(currLoc[3] == "account" && currLoc[5] == "giveaways")
+	if(window.location.href == "https://www.steamgifts.com/account/settings/giveaways")
 	{
 		initSetting();
 	}

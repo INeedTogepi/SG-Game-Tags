@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.9.1
+// @version      2.9.2
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
-// @match        *www.steamgifts.com/*
+// @match        http://www.steamgifts.com/*
+// @match        https://www.steamgifts.com/*
 // @connect      store.steampowered.com
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @grant        GM_deleteValue
@@ -143,12 +144,11 @@ function main()
 	{
 		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
 	}
-	/*
-	http://www.steamgifts.com/giveaways/*
-	http://www.steamgifts.com/sales/*
-	http://www.steamgifts.com/account/settings/giveaways/filters
-	http://www.steamgifts.com/account/steam/*
-	*/
+	
+	// http://www.steamgifts.com/giveaways/*
+	// http://www.steamgifts.com/sales/*
+	// http://www.steamgifts.com/account/settings/giveaways/filters
+	// http://www.steamgifts.com/account/steam/*
 	else if((currLoc[3] == "giveaways" && !(/search*/.test(currLoc[4]))) || currLoc[6] == "filters" || currLoc[3] == "sales" || currLoc[4] == "steam")
 	{
 		$(".table__row-inner-wrap").each(function(index, element)
@@ -195,12 +195,10 @@ function main()
 		});
 	}
 
-	/*
-	http://www.steamgifts.com/
-	http://www.steamgifts.com/giveaways/search*
-	http://www.steamgifts.com/user/*
-	http://www.steamgifts.com/group/*
-	*/
+	// http://www.steamgifts.com/
+	// http://www.steamgifts.com/giveaways/search*
+	// http://www.steamgifts.com/user/*
+	// http://www.steamgifts.com/group/*
 	$(".giveaway__row-inner-wrap").each(function(index, element)
 	{
 		var url = $(element).find("a.giveaway__icon").attr("href");

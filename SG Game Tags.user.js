@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.9.2
+// @version      2.10
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -39,6 +39,8 @@ myCSS = '<style> \
 		.tags-blue { background-color: #305AC9; } \
 		.tags-purple { background-color: #6600CC; } \
 		.tags-brown { background-color: #A0522D; } \
+		.tags-linux { background-color: #e67300; } \
+		.tags-mac { background-color: #777;} \
 		.my__checkbox { \
 			cursor:pointer; \
 			padding:7px 0 \
@@ -64,7 +66,7 @@ const linkBundle = "https://www.steamgifts.com/bundle-games/search?q=";
 const linkHidden = "https://www.steamgifts.com/account/settings/giveaways/filters/search?q=";
 const linkWishlist = "https://www.steamgifts.com/account/steam/wishlist/search?q=";
 
-const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories&appids=";
+const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories,platforms&appids=";
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?filters=categories&packageids=";
 
 const ClassCard = "tags tags-green";
@@ -87,11 +89,21 @@ const ClassWishlist = "tags tags-purple";
 const TitleWishlist = "This game is in your Steam wishlist";
 const TextWishlist = "Wishlist";
 
+const ClassLinux = "tags tags-linux";
+const TitleLinux = "Linux supported";
+const TextLinux = "Linux";
+
+const ClassMac = "tags tags-mac";
+const TitleMac = "Mac supported";
+const TextMac = "Mac"
+
 var cbCards = GM_getValue("cbCards", true);
 var cbAchievement = GM_getValue("cbAchievement", true);
 var cbBundled = GM_getValue("cbBundled", true);
 var cbHidden = GM_getValue("cbHidden", true);
 var cbWishlist = GM_getValue("cbWishlist", true);
+var cbLinux = GM_getValue("cbLinux", true);
+var cbMac = GM_getValue("cbMac", true);
 
 main();
 
@@ -119,16 +131,18 @@ function main()
 			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
 			var tagHidden = createTag(ClassHidden, TitleHidden, TextHidden, linkHidden+Name, tagBundle);
 			var tagWishlist = createTag(ClassWishlist, TitleWishlist, TextWishlist, linkWishlist+Name, tagHidden);
+			var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, url, tagWishlist);
+			var tagMac = createTag(ClassMac, TitleMac, TextMac, url, tagLinux);
 
 			if(isAppOrPackage(url))
 			{
-				getSteamCategories(ID, tagCard, tagAchievement);
+				getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
 			}
 			else
 			{
 				tagCard.setAttribute("href", url);
 				tagAchievement.setAttribute("href", url);
-				getSteamCategoriesFromPackage(ID, tagCard, tagAchievement);
+				getSteamCategoriesFromPackage(ID, tagCard, tagAchievement, tagLinux, tagMac);
 			}
 
 			getBundleStatus(ID, Name, tagBundle);
@@ -174,16 +188,19 @@ function main()
 				var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
 				var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
 				var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
+				var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, url, tagBundle);
+				var tagMac = createTag(ClassMac, TitleMac, TextMac, url, tagLinux);
+
 
 				if(isAppOrPackage(url))
 				{
-					getSteamCategories(ID, tagCard, tagAchievement);
+					getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
 				}
 				else
 				{
 					tagCard.setAttribute("href", url);
 					tagAchievement.setAttribute("href", url);
-					getSteamCategoriesFromPackage(ID, tagCard, tagAchievement);
+					getSteamCategoriesFromPackage(ID, tagCard, tagAchievement, tagLinux, tagMac);
 				}
 
 				getBundleStatus(ID, Name, tagBundle);
@@ -212,16 +229,18 @@ function main()
 			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
 			var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
 			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
+			var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, url, tagBundle);
+			var tagMac = createTag(ClassMac, TitleMac, TextMac, url, tagLinux);
 
 			if(isAppOrPackage(url))
 			{
-				getSteamCategories(ID, tagCard, tagAchievement);
+				getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
 			}
 			else
 			{
 				tagCard.setAttribute("href", url);
 				tagAchievement.setAttribute("href", url);
-				getSteamCategoriesFromPackage(ID, tagCard, tagAchievement);
+				getSteamCategoriesFromPackage(ID, tagCard, tagAchievement, tagLinux, tagMac);
 			}
 
 			getBundleStatus(ID, Name, tagBundle);
@@ -253,13 +272,17 @@ function displayElems(elems)
 	$(elems).css("display", "inline-block");
 }
 
-function getSteamCategories(appID, tagCard, tagAchievement)
+function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac)
 {
 	var jsonCards = GM_getValue("cards-" + appID, "");
 	var jsonAchievement = GM_getValue("achievements-" + appID, "");
+	var jsonLinux = GM_getValue("linux-" + appID, "");
+	var jsonMac = GM_getValue("mac-" + appID, "");
 
 	var reqCard = needRequest(jsonCards);
 	var reqAchievement = needRequest(jsonAchievement);
+	var reqLinux = needRequest(jsonLinux);
+	var reqMac = needRequest(jsonMac);
 
 	if(!reqCard && cbCards) // if app card is saved
 	{
@@ -271,8 +294,18 @@ function getSteamCategories(appID, tagCard, tagAchievement)
 		if(JSON.parse(jsonAchievement).val)
 			displayElems(tagAchievement);
 	}
+	if(!reqLinux && cbLinux) // if app linux is saved
+	{
+		if(JSON.parse(jsonLinux).val)
+			displayElems(tagLinux);
+	}
+	if(!reqMac && cbMac) // if app mac is saved
+	{
+		if(JSON.parse(jsonMac).val)
+			displayElems(tagMac);
+	}
 
-	if((reqCard && cbCards) || (reqAchievement && cbAchievement))
+	if((reqCard && cbCards) || (reqAchievement && cbAchievement) || (reqLinux && cbLinux) || (reqMac && cbMac))
 	{
 		console.log("request steam " + appID);
 		GM_xmlhttpRequest({
@@ -287,23 +320,26 @@ function getSteamCategories(appID, tagCard, tagAchievement)
 					console.log("apps " + appID + " does not have store page or does not exist");
 					saveData("cards-" + appID, false);
 					saveData("achievements-" + appID, false);
+					saveData("linux-" + appID, false);
+					saveData("mac-" + appID, false);
 				}
 				else
 				{
-					obj = obj.categories;
+					// get steam apps categories : achievement, trading cards, etc
+					var categories = obj.categories;
 					flagCard = false;
 					flagAchievement = false;
-					if(obj != null)
+					if(categories != null)
 					{
-						for(i=0; i<obj.length; i++)
+						for(i=0; i<categories.length; i++)
 						{
-							if(obj[i].id == "29" && reqCard)
+							if(categories[i].id == "29" && reqCard)
 							{
 								displayElems(tagCard);
 								saveData("cards-" + appID, true);
 								flagCard = true;
 							}
-							if(obj[i].id == "22" && reqAchievement)
+							if(categories[i].id == "22" && reqAchievement)
 							{
 								displayElems(tagAchievement);
 								saveData("achievements-" + appID, true);
@@ -318,6 +354,23 @@ function getSteamCategories(appID, tagCard, tagAchievement)
 						saveData("cards-" + appID, false);
 					if(reqAchievement && !flagAchievement)
 						saveData("achievements-" + appID, false);
+
+					// get steam apps platforms: linux: boolean, mac: boolean
+					var platforms = obj.platforms;
+					if(platforms.linux == true)
+					{
+						displayElems(tagLinux);
+						saveData("linux-" + appID, true);
+					}
+					else
+						saveData("linux-" + appID, false);
+					if(platforms.mac == true)
+					{
+						displayElems(tagMac);
+						saveData("mac-" + appID, true);
+					}
+					else
+						saveData("mac-" + appID, false);
 				}
 			}
 		});
@@ -408,7 +461,7 @@ function getWishlistStatus(appID, appName, elems)
 	}
 }
 
-function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement) //Need more research
+function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement, tagLinux, tagMac)
 {
 	if(cbCards || cbAchievement)
 	{
@@ -426,7 +479,7 @@ function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement) //Need mo
 					IDs = IDs.apps;
 					$.each(IDs, function(index)
 					{
-						getSteamCategories(IDs[index].id, tagCard, tagAchievement);
+						getSteamCategories(IDs[index].id, tagCard, tagAchievement, tagLinux, tagMac);
 						//TODO : Save appID + false + expire time ke local cache
 					});
 				}
@@ -548,14 +601,25 @@ function initSetting()
 			var form__checkbox_3 = createCheckBox("my__checkbox", CheckIcon + "Bundled", cbBundled);
 			var form__checkbox_4 = createCheckBox("my__checkbox", CheckIcon + "Hidden", cbHidden);
 			var form__checkbox_5 = createCheckBox("my__checkbox", CheckIcon + "Wishlist", cbWishlist);
+			var form__checkbox_6 = createCheckBox("my__checkbox", CheckIcon + "Linux", cbLinux);
+			var form__checkbox_7 = createCheckBox("my__checkbox", CheckIcon + "Mac", cbMac);
 
 			$(form__checkbox_1).click(function(){toggleCBTags(form__checkbox_1, "cbCards");});
 			$(form__checkbox_2).click(function(){toggleCBTags(form__checkbox_2, "cbAchievement");});
 			$(form__checkbox_3).click(function(){toggleCBTags(form__checkbox_3, "cbBundled");});
 			$(form__checkbox_4).click(function(){toggleCBTags(form__checkbox_4, "cbHidden");});
 			$(form__checkbox_5).click(function(){toggleCBTags(form__checkbox_5, "cbWishlist");});
+			$(form__checkbox_6).click(function(){toggleCBTags(form__checkbox_6, "cbLinux");});
+			$(form__checkbox_7).click(function(){toggleCBTags(form__checkbox_7, "cbMac");});
 
-		$(form__row__indent_1).append(form__checkbox_1).append(form__checkbox_2).append(form__checkbox_3).append(form__checkbox_4).append(form__checkbox_5);
+		$(form__row__indent_1)
+			.append(form__checkbox_1)
+			.append(form__checkbox_2)
+			.append(form__checkbox_3)
+			.append(form__checkbox_4)
+			.append(form__checkbox_5)
+			.append(form__checkbox_6)
+			.append(form__checkbox_7);
 
 	$(form__row_1).append(form__heading_1).append(form__row__indent_1);
 
@@ -609,6 +673,16 @@ function toggleCBTags(cbElems, cbName)
 	{
 		cbWishlist = !cbWishlist;
 		cbValue = cbWishlist;
+	}
+	else if(cbName == "cbLinux")
+	{
+		cbLinux = !cbLinux;
+		cbValue = cbLinux;
+	}
+	else if(cbName == "cbMac")
+	{
+		cbMac = !cbMac;
+		cbValue = cbMac;
 	}
 
 	GM_setValue(cbName, cbValue);

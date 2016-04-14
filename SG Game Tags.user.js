@@ -357,14 +357,14 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac)
 
 					// get steam apps platforms: linux: boolean, mac: boolean
 					var platforms = obj.platforms;
-					if(platforms.linux == true)
+					if(platforms.linux == true && cbLinux)
 					{
 						displayElems(tagLinux);
 						saveData("linux-" + appID, true);
 					}
 					else
 						saveData("linux-" + appID, false);
-					if(platforms.mac == true)
+					if(platforms.mac == true && cbMac)
 					{
 						displayElems(tagMac);
 						saveData("mac-" + appID, true);

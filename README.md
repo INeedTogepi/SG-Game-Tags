@@ -10,12 +10,14 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
 - Shows "Bundled" tag if the game is marked as bundled by SG.
 - Shows "Hidden" tag if the game is in your SG filter list.
 - Shows "Wishlist" tag if the game is in your Steam wishlist.
+- Shows "Linux" and "Mac" if the game supports multi platform.
 - Tags are links :
   - "Trading Cards" tag will open steamcardexchange inventory. 
   - "Achievements" tag will open steam achievements of the game.
   - "Bundled" tag will open http://www.steamgifts.com/bundle-games with corresponding game.
   - "Hidden" tag will open http://www.steamgifts.com/account/settings/giveaways/filters with corresponding game.
   - "Wishlist" tag will open http://www.steamgifts.com/account/steam/wishlist with corresponding game.
+  - "Linux" & "Mac" tag will open apps store page. I can't make it refer to system requirement section directly.
 
 ## Current Tags
 | Tags | Caption |
@@ -25,6 +27,8 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
 | "Bundled" | This game is marked as bundled by Steamgifts |
 | "Hidden" | This game is in your filter list |
 | "Wishlist" | This game is in your Steam wishlist |
+| "Linux" | Linux supported |
+| "Mac" | Mac supported |
 
 The script requires :
 - [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) for Chrome
@@ -58,6 +62,12 @@ Feedback and bug report are always appreciated.
 ![9](http://i.imgur.com/5c7r3Yc.jpg)
 
 ## Changelogs
+2.10
+- New tags (Linux & Mac).
+
+2.9
+- Update script because SG becomes https
+
 2.8
 - Added "Wishlist" tag. Only appear in giveaway page, because we already have http://www.steamgifts.com/giveaways/search?type=wishlist.
 - Added support to http://www.steamgifts.com/account/steam/wishlist and http://www.steamgifts.com/account/steam/games

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.10
+// @version      2.10.2
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -623,7 +623,7 @@ function initSetting()
 
 	$(form__row_1).append(form__heading_1).append(form__row__indent_1);
 
-	$(".form__submit-button").before(form__row_1);
+	$(".js__submit-form").before(form__row_1);
 
 	var desc = document.createElement("div");
 	desc.setAttribute("class", "form__input-description");

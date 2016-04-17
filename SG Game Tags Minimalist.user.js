@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags Minimalist
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.10.2
+// @version      2.10.2.1
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -542,7 +542,17 @@ function NewGiveawayDivUpdated(event)
 			var Target = $(element).find(".table__column--width-fill");
 
 			$(".js__autocomplete-data").off("DOMNodeInserted");
-			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
+			// var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
+			var tagBundle = document.createElement("a");
+			tagBundle.setAttribute("id", "tags");
+			tagBundle.setAttribute("target", "_blank");
+			tagBundle.setAttribute("class", ClassBundle);
+			tagBundle.setAttribute("title", TitleBundle);
+			tagBundle.setAttribute("href", linkBundle+Name);
+			tagBundle.innerHTML = "Bundled";
+
+			$(Target).after(tagBundle);
+			$(tagBundle).css("float", "right");
 			getBundleStatus(ID, Name, tagBundle);
 		});
 		if(gamesfound.length > 0)
@@ -555,7 +565,16 @@ function NewGiveawayDivUpdated(event)
 				var ID = getAppIDfromLink(url);
 				var Name = $(this).find(".table__column__heading").text();
 				var Target = $(".js__autocomplete-name")[0];
-				tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
+				var tagBundle = document.createElement("a");
+				tagBundle.setAttribute("id", "tags");
+				tagBundle.setAttribute("target", "_blank");
+				tagBundle.setAttribute("class", ClassBundle);
+				tagBundle.setAttribute("title", TitleBundle);
+				tagBundle.setAttribute("href", linkBundle+Name);
+				tagBundle.innerHTML = "Bundled";
+
+				$(Target).after(tagBundle);
+				$(tagBundle).css("margin-left", "0px");
 				getBundleStatus(ID, Name, tagBundle);
 			});
 		}

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.10.2
+// @version      2.10.3
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -95,7 +95,7 @@ const TextLinux = "Linux";
 
 const ClassMac = "tags tags-mac";
 const TitleMac = "Mac supported";
-const TextMac = "Mac"
+const TextMac = "Mac";
 
 var cbCards = GM_getValue("cbCards", true);
 var cbAchievement = GM_getValue("cbAchievement", true);
@@ -158,7 +158,7 @@ function main()
 	{
 		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
 	}
-	
+
 	// http://www.steamgifts.com/giveaways/*
 	// http://www.steamgifts.com/sales/*
 	// http://www.steamgifts.com/account/settings/giveaways/filters
@@ -382,8 +382,7 @@ function getBundleStatus(appID, appName, elems)
 	if(cbBundled)
 	{
 		var jsonBundle = GM_getValue("bundled-" + appID, "");
-		appName = appName.replace("+", "%2B");
-
+		appName = appName.replace("+", "%2B").substring(0,30);
 		if(!needRequest(jsonBundle))
 		{
 			if(JSON.parse(jsonBundle).val)
@@ -391,7 +390,7 @@ function getBundleStatus(appID, appName, elems)
 		}
 		else
 		{
-			console.log("request bundle " + appID);
+			console.log("request bundle " + appID + " - " + appName);
 			$.get( linkBundle+appName, function(data) {
 				var gamesfound = $(data).find(".table__column__secondary-link");
 				for(i=0; i<$(gamesfound).length; i++)
@@ -417,8 +416,8 @@ function getHiddenStatus(appID, appName, elems)
 {
 	if(cbHidden)
 	{
-		console.log("request hidden " + appID);
-		appName = appName.replace("+", "%2B");
+		console.log("request hidden " + appID + " - " + appName);
+		appName = appName.replace("+", "%2B").substring(0,30);
 		$.get(linkHidden+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
@@ -441,8 +440,8 @@ function getWishlistStatus(appID, appName, elems)
 {
 	if(cbWishlist)
 	{
-		console.log("request wishlist " + appID);
-		appName = appName.replace("+", "%2B");
+		console.log("request wishlist " + appID + " - " + appName);
+		appName = appName.replace("+", "%2B").substring(0,30);
 		$.get(linkWishlist+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");

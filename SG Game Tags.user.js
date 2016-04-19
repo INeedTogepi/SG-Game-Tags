@@ -7,7 +7,7 @@
 
 // @match        http://www.steamgifts.com/*
 // @match        https://www.steamgifts.com/*
-// @connect      store.steampowered.com
+// @connect      steampowered.com
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @grant        GM_deleteValue
 // @grant        GM_getValue

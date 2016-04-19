@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags Minimalist
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.10.2.1
+// @version      2.10.3
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -381,7 +381,7 @@ function getBundleStatus(appID, appName, elems)
 	if(cbBundled)
 	{
 		var jsonBundle = GM_getValue("bundled-" + appID, "");
-		appName = appName.replace("+", "%2B");
+		appName = appName.replace("+", "%2B").substring(0,30);
 
 		if(!needRequest(jsonBundle))
 		{
@@ -417,7 +417,7 @@ function getHiddenStatus(appID, appName, elems)
 	if(cbHidden)
 	{
 		console.log("request hidden " + appID);
-		appName = appName.replace("+", "%2B");
+		appName = appName.replace("+", "%2B").substring(0,30);
 		$.get(linkHidden+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
@@ -441,7 +441,7 @@ function getWishlistStatus(appID, appName, elems)
 	if(cbWishlist)
 	{
 		console.log("request wishlist " + appID);
-		appName = appName.replace("+", "%2B");
+		appName = appName.replace("+", "%2B").substring(0,30);
 		$.get(linkWishlist+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");

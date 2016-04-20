@@ -472,7 +472,14 @@ function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement, tagLinux,
 			onload: function(data)
 			{
 				var IDs = JSON.parse(data.responseText)[appID].data;
-				if(IDs == null) console.log("package " + appID + " does not exist");
+				if(IDs == null)
+				{
+					console.log("package " + appID + " does not exist");
+					saveData("cards-" + appID, false);
+					saveData("achievements-" + appID, false);
+					saveData("linux-" + appID, false);
+					saveData("mac-" + appID, false);
+				}
 				else
 				{
 					IDs = IDs.apps;

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.10.3
+// @version      2.10.3.1
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -123,7 +123,7 @@ function main()
 		if (url != null) //for game without appID e.g Humble Indie Bundle
 		{
 			var ID = getAppIDfromLink(url);
-			var Name = $(".featured__heading__medium").text();
+			var Name = $(".featured__heading__medium").text().substring(0,30);
 			var target = $(".featured__heading");
 
 			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
@@ -168,7 +168,7 @@ function main()
 		$(".table__row-inner-wrap").each(function(index, element)
 		{
 
-			var Name = $(element).find(".table__column__heading").text();
+			var Name = $(element).find(".table__column__heading").text().substring(0,30);
 			var target = $(element).find(".table__column--width-fill > :first-child");
 
 			//because sales don't use <p> thus tags will appears in line with title
@@ -223,7 +223,7 @@ function main()
 		{
 			var ID = getAppIDfromLink(url);
 
-			var Name = $(element).find(".giveaway__heading__name").text();
+			var Name = $(element).find(".giveaway__heading__name").text().substring(0,30);
 			var target = $(element).find(".giveaway__heading");
 
 			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
@@ -382,7 +382,7 @@ function getBundleStatus(appID, appName, elems)
 	if(cbBundled)
 	{
 		var jsonBundle = GM_getValue("bundled-" + appID, "");
-		appName = appName.replace("+", "%2B").substring(0,30);
+		appName = appName.replace("+", "%2B");
 		if(!needRequest(jsonBundle))
 		{
 			if(JSON.parse(jsonBundle).val)
@@ -418,7 +418,7 @@ function getHiddenStatus(appID, appName, elems)
 	if(cbHidden)
 	{
 		console.log("request hidden " + appID + " - " + appName);
-		appName = appName.replace("+", "%2B").substring(0,30);
+		appName = appName.replace("+", "%2B");
 		$.get(linkHidden+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
@@ -442,7 +442,7 @@ function getWishlistStatus(appID, appName, elems)
 	if(cbWishlist)
 	{
 		console.log("request wishlist " + appID + " - " + appName);
-		appName = appName.replace("+", "%2B").substring(0,30);
+		appName = appName.replace("+", "%2B");
 		$.get(linkWishlist+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");

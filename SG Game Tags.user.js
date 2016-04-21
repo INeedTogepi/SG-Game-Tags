@@ -392,7 +392,8 @@ function getBundleStatus(appID, appName, elems)
 		else
 		{
 			console.log("request bundle " + appID);
-			$.get( linkBundle+appName, function(data) {
+			$.get(linkBundle+appName, function(data)
+			{
 				var gamesfound = $(data).find(".table__column__secondary-link");
 				for(i=0; i<$(gamesfound).length; i++)
 				{

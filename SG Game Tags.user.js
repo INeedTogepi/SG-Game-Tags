@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.10.3.1
+// @version      2.11.1
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -212,11 +212,25 @@ function main()
 		});
 	}
 
-	// http://www.steamgifts.com/
-	// http://www.steamgifts.com/giveaways/search*
-	// http://www.steamgifts.com/user/*
-	// http://www.steamgifts.com/group/*
-	$(".giveaway__row-inner-wrap").each(function(index, element)
+	//Giveaway Page
+	ProcessGiveawayListPage($(".giveaway__row-inner-wrap"));
+
+	// handles element added later by endless scroll
+	$(document).on("DOMNodeInserted", ".widget-container", function(e) {
+		ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
+	});
+
+	if(window.location.href == "https://www.steamgifts.com/account/settings/giveaways")
+		initSetting();
+}
+
+// http://www.steamgifts.com/
+// http://www.steamgifts.com/giveaways/search*
+// http://www.steamgifts.com/user/*
+// http://www.steamgifts.com/group/*
+function ProcessGiveawayListPage(scope)
+{
+	$(scope).each(function(index, element)
 	{
 		var url = $(element).find("a.giveaway__icon").attr("href");
 		if(url != null)
@@ -246,11 +260,6 @@ function main()
 			getBundleStatus(ID, Name, tagBundle);
 		}
 	});
-
-	if(window.location.href == "https://www.steamgifts.com/account/settings/giveaways")
-	{
-		initSetting();
-	}
 }
 
 function createTag(_class, title, text, href, divTarget)

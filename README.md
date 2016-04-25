@@ -18,6 +18,7 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
   - "Hidden" tag will open http://www.steamgifts.com/account/settings/giveaways/filters with corresponding game.
   - "Wishlist" tag will open http://www.steamgifts.com/account/steam/wishlist with corresponding game.
   - "Linux" & "Mac" tag will open apps store page. I can't make it refer to system requirement section directly.
+- Supports SG++ and Ext SG endless scroll. Credits to Alpe who helped me with this.
 
 ## Current Tags
 | Tags | Caption |
@@ -46,8 +47,6 @@ Some games with wrong store page link won't show trading card status. e.g Left 4
 Portal Bundle store page should be [this](http://store.steampowered.com/bundle/234/), but SG shows [this](http://store.steampowered.com/sub/7932/)
 I can't do anything about that, unless SG changes it.
 
-The script still doesn't support endless scroll. Alpe did helped me about this but I'm afraid I can't do anything if something happen. So I postpone endless scroll for a while. Check out his script here http://www.steamgifts.com/discussion/ZH7th/userscript-steamgifts-steam-ratings.
-
 Feedback and bug report are always appreciated.
 
 ## Screenshots
@@ -62,6 +61,8 @@ Feedback and bug report are always appreciated.
 ![9](http://i.imgur.com/5c7r3Yc.jpg)
 
 ## Changelogs
+2.11
+- Added support for SG++ and Ext SG endless scroll. Tested on Chrome and Firefox. Credits to Alpe who helped me with this.
 2.10
 - New tags (Linux & Mac).
 
@@ -100,11 +101,12 @@ Feedback and bug report are always appreciated.
 0.1	First Release.
 
 ## To Do List
+- ~~Compatibility to endless scroll giveaway list.~~ (done)
 - Find a way to store Hidden & Wishlist data efficiently so it won't make too much request to SG. If I manage to do this, Wishlist tag can be shown anywhere else.
 - Show steam user reviews score. Actually Alpe built the script for this feature http://www.steamgifts.com/discussion/ZH7th/userscript-steamgifts-steam-ratings.
 - Sidebar giveaway filter :
   - Show all / Show games with Trading card only.
   - Show all / Show bundled games / Show Non bundled games.
   - Show all / Show games with achievement only.
-- Compatibility to endless scroll giveaway list (Postponed for a while).
+
 - Custom colors for tags. Change the tags color the way you want.

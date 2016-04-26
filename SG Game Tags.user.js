@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.3
+// @version      2.11.5
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
-// @match        http://www.steamgifts.com/*
-// @match        https://www.steamgifts.com/*
+// @include      http://www.steamgifts.com/*
+// @include      https://www.steamgifts.com/*
 // @connect      steampowered.com
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @grant        GM_deleteValue
@@ -124,6 +124,7 @@ function main()
 		{
 			var ID = getAppIDfromLink(url);
 			var Name = $(".featured__heading__medium").text().substring(0,30);
+			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
 			var target = $(".featured__heading");
 
 			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
@@ -169,6 +170,7 @@ function main()
 		{
 
 			var Name = $(element).find(".table__column__heading").text().substring(0,30);
+			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
 			var target = $(element).find(".table__column--width-fill > :first-child");
 
 			//because sales don't use <p> thus tags will appears in line with title
@@ -233,6 +235,7 @@ function ProcessGiveawayListPage(scope)
 			var ID = getAppIDfromLink(url);
 
 			var Name = $(element).find(".giveaway__heading__name").text().substring(0,30);
+			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
 			var target = $(element).find(".giveaway__heading");
 
 			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
@@ -386,7 +389,6 @@ function getBundleStatus(appID, appName, elems)
 	if(cbBundled)
 	{
 		var jsonBundle = GM_getValue("bundled-" + appID, "");
-		appName = appName.replace("+", "%2B");
 		if(!needRequest(jsonBundle))
 		{
 			if(JSON.parse(jsonBundle).val)
@@ -422,7 +424,6 @@ function getHiddenStatus(appID, appName, elems)
 	if(cbHidden)
 	{
 		console.log("request hidden " + appID + " - " + appName);
-		appName = appName.replace("+", "%2B");
 		$.get(linkHidden+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
@@ -446,7 +447,6 @@ function getWishlistStatus(appID, appName, elems)
 	if(cbWishlist)
 	{
 		console.log("request wishlist " + appID + " - " + appName);
-		appName = appName.replace("+", "%2B");
 		$.get(linkWishlist+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags Minimalist
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.2
+// @version      2.11.3
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -134,11 +134,11 @@ function main()
 			var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, url, target);
 			var tagMac = createTag(ClassMac, TitleMac, TextMac, url, target);
 
-			if(isAppOrPackage(url))
+			if(isApp(url))
 			{
 				getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
 			}
-			else
+			else if(isPackage(url))
 			{
 				tagCard.setAttribute("href", url);
 				tagAchievement.setAttribute("href", url);
@@ -191,11 +191,11 @@ function main()
 				var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, url, target);
 				var tagMac = createTag(ClassMac, TitleMac, TextMac, url, target);
 
-				if(isAppOrPackage(url))
+				if(isApp(url))
 				{
 					getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
 				}
-				else
+				else if(isPackage(url))
 				{
 					tagCard.setAttribute("href", url);
 					tagAchievement.setAttribute("href", url);
@@ -203,10 +203,6 @@ function main()
 				}
 
 				getBundleStatus(ID, Name, tagBundle);
-			}
-			else //if image does not have appID
-			{
-				//TODO: open giveaway page, and then get appID from image
 			}
 		});
 	}
@@ -247,11 +243,11 @@ function ProcessGiveawayListPage(scope)
 			var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, url, target);
 			var tagMac = createTag(ClassMac, TitleMac, TextMac, url, target);
 			
-			if(isAppOrPackage(url))
+			if(isApp(url))
 			{
 				getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
 			}
-			else
+			else if(isApp(url))
 			{
 				tagCard.setAttribute("href", url);
 				tagAchievement.setAttribute("href", url);
@@ -507,15 +503,19 @@ function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement, tagLinux,
 
 function getAppIDfromLink(link)
 {
-//	http://store.steampowered.com/app/403570/
 	var url = link.split("/");
 	return url[url.length-2];
 }
 
-function isAppOrPackage(link)
+function isApp(link)
 {
-//	store.steampowered.com/app/403570/
-	var pattern = /\/app\/|\/apps\//;
+	var pattern = /\/app|apps\/0-9\//;
+	return pattern.test(link);
+}
+
+function isPackage(link)
+{
+	var pattern = /\/sub|subs\/0-9\//;
 	return pattern.test(link);
 }
 

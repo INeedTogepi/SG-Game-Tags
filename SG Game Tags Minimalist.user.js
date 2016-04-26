@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags Minimalist
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.1
+// @version      2.11.2
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -343,13 +343,13 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac)
 					{
 						for(i=0; i<categories.length; i++)
 						{
-							if(categories[i].id == "29" && reqCard)
+							if(categories[i].id == "29" && cbCards)
 							{
 								displayElems(tagCard);
 								saveData("cards-" + appID, true);
 								flagCard = true;
 							}
-							if(categories[i].id == "22" && reqAchievement)
+							if(categories[i].id == "22" && cbAchievement)
 							{
 								displayElems(tagAchievement);
 								saveData("achievements-" + appID, true);

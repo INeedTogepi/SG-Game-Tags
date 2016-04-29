@@ -102,11 +102,11 @@ Feedback and bug report are always appreciated.
 
 ## To Do List
 - ~~Compatibility to endless scroll giveaway list.~~ (done)
+- Add button to manually resend request data to bypass cached data.
 - Find a way to store Hidden & Wishlist data efficiently so it won't make too much request to SG. If I manage to do this, Wishlist tag can be shown anywhere else.
 - Show steam user reviews score. Actually Alpe built the script for this feature http://www.steamgifts.com/discussion/ZH7th/userscript-steamgifts-steam-ratings.
 - Sidebar giveaway filter :
   - Show all / Show games with Trading card only.
   - Show all / Show bundled games / Show Non bundled games.
   - Show all / Show games with achievement only.
-
 - Custom colors for tags. Change the tags color the way you want.

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags Minimalist
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.5
+// @version      2.11.6
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -117,7 +117,7 @@ function main()
 		var url;
 		if(currLoc[3] == "giveaway") //giveaway page
 			url = $(".featured__inner-wrap a")[0].href;
-		else if(currLoc[3] != "user" && currLoc[3] != "group") //homepage
+		else if((currLoc[3] != "user" && currLoc[3] != "group") && ($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length == 0)) //homepage
 			url = $(".featured__inner-wrap a img")[0].src;
 
 		if (url != null) //for game without appID e.g Humble Indie Bundle
@@ -250,7 +250,7 @@ function ProcessGiveawayListPage(scope)
 			{
 				getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
 			}
-			else if(isApp(url))
+			else if(isPackage(url))
 			{
 				tagCard.setAttribute("href", url);
 				tagAchievement.setAttribute("href", url);

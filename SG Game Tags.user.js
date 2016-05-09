@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.6
+// @version      2.11.7
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -114,13 +114,13 @@ function main()
 	// shows trading card tag in featured game (header)
 	if($(".featured__inner-wrap").length == 1) //exclude page without featured inner wrap
 	{
-		var url;
+		var url = "";
 		if(currLoc[3] == "giveaway") //giveaway page
 			url = $(".featured__inner-wrap a")[0].href;
-		else if((currLoc[3] != "user" && currLoc[3] != "group") && ($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length == 0)) //homepage
+		else if((currLoc[3] != "user" && currLoc[3] != "group") && ($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length == 0) && $(".featured__inner-wrap a img").length > 0) //homepage
 			url = $(".featured__inner-wrap a img")[0].src;
 
-		if (url != null) //for game without appID e.g Humble Indie Bundle
+		if (url != "") //for game without appID e.g Humble Indie Bundle
 		{
 			var ID = getAppIDfromLink(url);
 			var Name = $(".featured__heading__medium").text().substring(0,30);
@@ -338,15 +338,20 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac)
 					flagAchievement = false;
 					if(categories != null)
 					{
-						for(i=0; i<categories.length; i++)
+						if(cbCards)
 						{
-							if(categories[i].id == "29" && cbCards)
+							var catCards = $.grep(categories, function(e){ return e.id == "29"; });
+							if(catCards.length > 0)
 							{
 								displayElems(tagCard);
 								saveData("cards-" + appID, true);
 								flagCard = true;
 							}
-							if(categories[i].id == "22" && cbAchievement)
+						}
+						if(cbAchievement)
+						{
+							var catAchievement = $.grep(categories, function(e){ return e.id == "22"; });
+							if(catAchievement.length > 0)
 							{
 								displayElems(tagAchievement);
 								saveData("achievements-" + appID, true);
@@ -491,7 +496,6 @@ function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement, tagLinux,
 					$.each(IDs, function(index)
 					{
 						getSteamCategories(IDs[index].id, tagCard, tagAchievement, tagLinux, tagMac);
-						//TODO : Save appID + false + expire time ke local cache
 					});
 				}
 			}
@@ -519,8 +523,7 @@ function isPackage(link)
 
 function saveData(name, val)
 {
-	var today = new Date().toJSON().slice(0,10);
-	var data = {val:val, savedDate:today};
+	var data = {val:val, savedDate:Date.now()};
 	GM_setValue(name, JSON.stringify(data));
 }
 
@@ -534,13 +537,7 @@ function needRequest(json)
 		if(obj.val)
 			return false;
 		else
-		{
-			var today = new Date().toJSON().slice(0,10);
-			if(obj.savedDate == today)
-				return false;
-			else
-				return true;
-		}
+			return !(obj.savedDate > (Date.now() - (7 * 24 * 60 * 60 * 1000))); // need request if savedDate > 7 days ago
 	}
 }
 

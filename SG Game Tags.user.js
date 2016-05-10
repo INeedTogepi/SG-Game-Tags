@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.7
+// @version      2.11.8
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -97,6 +97,8 @@ const ClassMac = "tags tags-mac";
 const TitleMac = "Mac supported";
 const TextMac = "Mac";
 
+const THIS_URL = window.location.href;
+
 var cbCards = GM_getValue("cbCards", true);
 var cbAchievement = GM_getValue("cbAchievement", true);
 var cbBundled = GM_getValue("cbBundled", true);
@@ -115,7 +117,7 @@ function main()
 	if($(".featured__inner-wrap").length == 1) //exclude page without featured inner wrap
 	{
 		var url = "";
-		if(currLoc[3] == "giveaway") //giveaway page
+		if(/steamgifts.com\/giveaway\//) //giveaway page
 			url = $(".featured__inner-wrap a")[0].href;
 		else if((currLoc[3] != "user" && currLoc[3] != "group") && ($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length == 0) && $(".featured__inner-wrap a img").length > 0) //homepage
 			url = $(".featured__inner-wrap a img")[0].src;
@@ -168,7 +170,6 @@ function main()
 	{
 		$(".table__row-inner-wrap").each(function(index, element)
 		{
-
 			var Name = $(element).find(".table__column__heading").text().substring(0,30);
 			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
 			var target = $(element).find(".table__column--width-fill > :first-child");
@@ -537,7 +538,7 @@ function needRequest(json)
 		if(obj.val)
 			return false;
 		else
-			return !(obj.savedDate > (Date.now() - (7 * 24 * 60 * 60 * 1000))); // need request if savedDate > 7 days ago
+			return !(obj.savedDate > (Date.now() - (24 * 60 * 60 * 1000))); // need request if savedDate > 24 hours ago
 	}
 }
 

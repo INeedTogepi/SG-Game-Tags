@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags Minimalist
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.7
+// @version      2.11.8
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -539,7 +539,7 @@ function needRequest(json)
 		if(obj.val)
 			return false;
 		else
-			return !(obj.savedDate > (Date.now() - (7 * 24 * 60 * 60 * 1000))); // need request if savedDate > 7 days ago
+			return !(obj.savedDate > (Date.now() - (24 * 60 * 60 * 1000))); // need request if savedDate > 7 days ago
 	}
 }
 

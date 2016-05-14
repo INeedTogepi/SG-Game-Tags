@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags Minimalist
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.8
+// @version      2.11.9
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -97,6 +97,9 @@ const ClassMac = "tags tags-mac";
 const TitleMac = "Mac supported";
 const TextMac = "M";
 
+const THIS_URL = window.location.href;
+const TIMEOUT = 1000;
+
 var cbCards = GM_getValue("cbCards", true);
 var cbAchievement = GM_getValue("cbAchievement", true);
 var cbBundled = GM_getValue("cbBundled", true);
@@ -109,157 +112,139 @@ main();
 
 function main()
 {
-	var currLoc = window.location.href.split("/");
-
-	// shows trading card tag in featured game (header)
-	if($(".featured__inner-wrap").length == 1) //exclude page without featured inner wrap
+	if(/www.steamgifts.com\/giveaways\/new/.test(THIS_URL)) // process giveaway creation page
+		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
+	else if(/www.steamgifts.com\/account\/settings\/giveaways$/.test(THIS_URL)) // process giveaway setting page
+		initSetting();
+	else if(/www.steamgifts.com\/($|giveaways$|giveaways\/search)/.test(THIS_URL)) // homepage and all search active giveaway
 	{
-		var url = "";
-		if(currLoc[3] == "giveaway") //giveaway page
-			url = $(".featured__inner-wrap a")[0].href;
-		else if((currLoc[3] != "user" && currLoc[3] != "group") && ($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length == 0) && $(".featured__inner-wrap a img") > 0) //homepage
-			url = $(".featured__inner-wrap a img")[0].src;
-
-		if (url != "") //for game without appID e.g Humble Indie Bundle
+		ProcessGiveawayListPage($(".giveaway__row-inner-wrap"));
+		// handles element added later by endless scroll, add timeout to delay this function because it is triggered when ext SG runs
+		setTimeout(function()
 		{
-			var ID = getAppIDfromLink(url);
-			var Name = $(".featured__heading__medium").text().substring(0,30);
-			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
-			var target = $(".featured__heading");
-
-			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
-			var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", target);
-			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
-			var tagHidden = createTag(ClassHidden, TitleHidden, TextHidden, linkHidden+Name, target);
-			var tagWishlist = createTag(ClassWishlist, TitleWishlist, TextWishlist, linkWishlist+Name, target);
-			var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, url, target);
-			var tagMac = createTag(ClassMac, TitleMac, TextMac, url, target);
-
-			if(isApp(url))
+			$(document).on("DOMNodeInserted", ".widget-container", function(e)
 			{
-				getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
-			}
-			else if(isPackage(url))
-			{
-				tagCard.setAttribute("href", url);
-				tagAchievement.setAttribute("href", url);
-				getSteamCategoriesFromPackage(ID, tagCard, tagAchievement, tagLinux, tagMac);
-			}
+				ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
+			});
+		}, TIMEOUT);
 
-			getBundleStatus(ID, Name, tagBundle);
-
-			if(currLoc[3] == "giveaway") //only trigger inside giveaway page, no need for homepage
-			{
-				getHiddenStatus(ID, Name, tagHidden);
-				getWishlistStatus(ID, Name, tagWishlist);
-			}
+		if($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length == 0 && $(".featured__inner-wrap a img").length > 0)
+		{
+			var URL = $(".featured__inner-wrap a img")[0].src;
+			ProcessFeaturedGiveaway(URL);
 		}
 	}
-	else if(currLoc[3] == "giveaways" && currLoc[4] == "new") // http://www.steamgifts.com/giveaways/new
+	// user profile & group page excluding user trade and feedback and excluding group users, stats, and wishlist
+	else if(/www.steamgifts.com\/(user|group)\//.test(THIS_URL) && !/user\/\w+\/(feedback|trade)/.test(THIS_URL) && !/group\/\w+\/\w+\/(users|stats|wishlist)/.test(THIS_URL)) // exclude 
 	{
-		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
-	}
-
-	// http://www.steamgifts.com/giveaways/*
-	// http://www.steamgifts.com/sales/*
-	// http://www.steamgifts.com/account/settings/giveaways/filters
-	// http://www.steamgifts.com/account/steam/*
-	else if((currLoc[3] == "giveaways" && !(/search*/.test(currLoc[4]))) || currLoc[6] == "filters" || currLoc[3] == "sales" || currLoc[4] == "steam")
-	{
-		$(".table__row-inner-wrap").each(function(index, element)
+		ProcessGiveawayListPage($(".giveaway__row-inner-wrap"));
+		// handles element added later by endless scroll
+		setTimeout(function()
 		{
-
-			var Name = $(element).find(".table__column__heading").text().substring(0,30);
-			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
-			var target = $(element).find(".table__column--width-fill > :first-child");
-
-			//because sales don't use <p> thus tags will appears in line with title
-			if(currLoc[3] == "sales") target.css("display", "block");
-
-			var url;
-			if(currLoc[6] == "filters")
-				url = $(element).find("a.table__column__secondary-link").text();
-			else
-				url = $($(element).find(".global__image-inner-wrap")[0]).css('background-image');
-
-			if(url != null) //if can get app ID from image
+			$(document).on("DOMNodeInserted", ".widget-container", function(e)
 			{
-				url = url.replace('url(', '').replace(')', '');
-				var ID = getAppIDfromLink(url);
-
-				var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
-				var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", target);
-				var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
-				var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, url, target);
-				var tagMac = createTag(ClassMac, TitleMac, TextMac, url, target);
-
-				if(isApp(url))
-				{
-					getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
-				}
-				else if(isPackage(url))
-				{
-					tagCard.setAttribute("href", url);
-					tagAchievement.setAttribute("href", url);
-					getSteamCategoriesFromPackage(ID, tagCard, tagAchievement, tagLinux, tagMac);
-				}
-
-				getBundleStatus(ID, Name, tagBundle);
-			}
-		});
+				ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
+			});
+		}, TIMEOUT);
 	}
-
-	//Giveaway Page
-	ProcessGiveawayListPage($(".giveaway__row-inner-wrap"));
-
-	// handles element added later by endless scroll
-	$(document).on("DOMNodeInserted", ".widget-container", function(e) {
-		ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
-	});
-
-	if(window.location.href == "https://www.steamgifts.com/account/settings/giveaways")
+	else if(/www.steamgifts.com\/giveaway\//.test(THIS_URL)) // giveaway page https://www.steamgifts.com/giveaway/FGbTw/left-4-dead-2
 	{
-		initSetting();
+		var URL = $(".featured__inner-wrap a")[0].href;
+		ProcessFeaturedGiveaway(URL);
 	}
+	// https://www.steamgifts.com/sales*
+	// https://www.steamgifts.com/sales/account/steam/games
+	// https://www.steamgifts.com/sales/account/steam/wishlist
+	// https://www.steamgifts.com/giveaways/created
+	// https://www.steamgifts.com/giveaways/entered
+	// https://www.steamgifts.com/giveaways/won
+	// https://www.steamgifts.com/giveaways/wishlist
+	// https://www.steamgifts.com/account/settings/giveaways/filters
+	else if(/www.steamgifts.com\/(sales|account\/steam\/(games|wishlist)|giveaways\/(created|entered|won|wishlist)|account\/settings\/giveaways\/filters|group\/\w+\/\w+\/wishlist)/.test(THIS_URL))
+		ProcessGameListPage();
+	else
+		console.log("[SG Game Tags] Not Supported Page");
 }
 
-// http://www.steamgifts.com/
-// http://www.steamgifts.com/giveaways/search*
-// http://www.steamgifts.com/user/*
-// http://www.steamgifts.com/group/*
-function ProcessGiveawayListPage(scope)
+function ProcessFeaturedGiveaway(URL)
+{
+	var ID = getAppIDfromLink(URL);
+	var Name = $(".featured__heading__medium").text().substring(0,30);
+	Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
+	var Target = $(".featured__heading");
+
+	ProcessTags(Target, URL, Name);
+}
+
+function ProcessGiveawayListPage(scope) // giveaways list with creator name
 {
 	$(scope).each(function(index, element)
 	{
-		var url = $(element).find("a.giveaway__icon").attr("href");
-		if(url != null)
+		var URL = $(element).find("a.giveaway__icon").attr("href");
+		if(URL != null)
 		{
-			var ID = getAppIDfromLink(url);
-
 			var Name = $(element).find(".giveaway__heading__name").text().substring(0,30);
 			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
-			var target = $(element).find(".giveaway__heading");
+			var Target = $(element).find(".giveaway__heading");
 
-			var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, target);
-			var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", target);
-			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, target);
-			var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, url, target);
-			var tagMac = createTag(ClassMac, TitleMac, TextMac, url, target);
-
-			if(isApp(url))
-			{
-				getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
-			}
-			else if(isPackage(url))
-			{
-				tagCard.setAttribute("href", url);
-				tagAchievement.setAttribute("href", url);
-				getSteamCategoriesFromPackage(ID, tagCard, tagAchievement, tagLinux, tagMac);
-			}
-
-			getBundleStatus(ID, Name, tagBundle);
+			ProcessTags(Target, URL, Name);
 		}
 	});
+}
+
+function ProcessGameListPage() // giveaways / games list
+{
+	$(".table__row-inner-wrap").each(function(index, element)
+	{
+		var URL;
+		if(/www.steamgifts.com\/account\/settings\/giveaways\/filters/.test(THIS_URL))
+			URL = $(element).find("a.table__column__secondary-link").text();
+		else
+			URL = $($(element).find(".global__image-inner-wrap")[0]).css('background-image');
+
+		if(URL != null)
+		{
+			URL = URL.replace('url(', '').replace(')', '');
+			var Name = $(element).find(".table__column__heading").text().substring(0,30);
+			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
+			var Target = $(element).find(".table__column--width-fill > :first-child");
+
+			if(/www.steamgifts.com\/sales/.test(THIS_URL)) Target.css("display", "block"); //because sales pages don't use <p> thus tags will appears in line with title
+
+			ProcessTags(Target, URL, Name);
+		}
+	});
+}
+
+function ProcessTags(Target, URL, Name)
+{
+	var ID = getAppIDfromLink(URL);
+
+	var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, Target);
+	var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", Target);
+	var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
+	var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, URL, Target);
+	var tagMac = createTag(ClassMac, TitleMac, TextMac, URL, Target);
+
+	if(isApp(URL))
+		getSteamCategories(ID, tagCard, tagAchievement, tagLinux, tagMac);
+	else if(isPackage(URL))
+	{
+		tagCard.setAttribute("href", URL);
+		tagAchievement.setAttribute("href", URL);
+		getSteamCategoriesFromPackage(ID, tagCard, tagAchievement, tagLinux, tagMac);
+	}
+
+	getBundleStatus(ID, Name, tagBundle);
+
+	if(/www.steamgifts.com\/giveaway\//.test(THIS_URL)) //only trigger inside giveaway page, no need for homepage
+	{
+		var tagHidden = createTag(ClassHidden, TitleHidden, TextHidden, linkHidden+Name, Target);
+		var tagWishlist = createTag(ClassWishlist, TitleWishlist, TextWishlist, linkWishlist+Name, Target);
+
+		getHiddenStatus(ID, Name, tagHidden);
+		getWishlistStatus(ID, Name, tagWishlist);
+	}
 }
 
 function createTag(_class, title, text, href, divTarget)
@@ -316,7 +301,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac)
 
 	if((reqCard && cbCards) || (reqAchievement && cbAchievement) || (reqLinux && cbLinux) || (reqMac && cbMac))
 	{
-		console.log("request steam " + appID);
+		console.log("[SG Game Tags] Request steam " + appID);
 		GM_xmlhttpRequest({
 			method: "GET",
 			timeout: 10000,
@@ -326,7 +311,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac)
 				var obj = JSON.parse(data.responseText)[appID].data;
 				if(obj == null)
 				{
-					console.log("apps " + appID + " does not have store page or does not exist");
+					console.log("[SG Game Tags] apps " + appID + " does not have store page or does not exist");
 					saveData("cards-" + appID, false);
 					saveData("achievements-" + appID, false);
 					saveData("linux-" + appID, false);
@@ -362,7 +347,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac)
 						}
 					}
 					else
-						console.log("apps " + appID + " does not have categories");
+						console.log("[SG Game Tags] apps " + appID + " does not have categories");
 
 					if(reqCard && !flagCard)
 						saveData("cards-" + appID, false);
@@ -403,7 +388,7 @@ function getBundleStatus(appID, appName, elems)
 		}
 		else
 		{
-			console.log("request bundle " + appID + " - " + appName);
+			console.log("[SG Game Tags] Request bundle " + appID + " - " + appName);
 			$.get( linkBundle+appName, function(data) {
 				var gamesfound = $(data).find(".table__column__secondary-link");
 				for(i=0; i<$(gamesfound).length; i++)
@@ -429,7 +414,7 @@ function getHiddenStatus(appID, appName, elems)
 {
 	if(cbHidden)
 	{
-		console.log("request hidden " + appID + " - " + appName);
+		console.log("Request hidden " + appID + " - " + appName);
 		$.get(linkHidden+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
@@ -452,7 +437,7 @@ function getWishlistStatus(appID, appName, elems)
 {
 	if(cbWishlist)
 	{
-		console.log("request wishlist " + appID + " - " + appName);
+		console.log("Request wishlist " + appID + " - " + appName);
 		$.get(linkWishlist+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
@@ -485,7 +470,7 @@ function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement, tagLinux,
 				var IDs = JSON.parse(data.responseText)[appID].data;
 				if(IDs == null)
 				{
-					console.log("package " + appID + " does not exist");
+					console.log("[SG Game Tags] Package " + appID + " does not exist");
 					saveData("cards-" + appID, false);
 					saveData("achievements-" + appID, false);
 					saveData("linux-" + appID, false);

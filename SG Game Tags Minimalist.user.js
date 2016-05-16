@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags Minimalist
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.9
+// @version      2.11.10
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -325,51 +325,35 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac)
 					flagAchievement = false;
 					if(categories != null)
 					{
-						if(cbCards)
+						var catCards = $.grep(categories, function(e){ return e.id == "29"; });
+						if(catCards.length > 0)
 						{
-							var catCards = $.grep(categories, function(e){ return e.id == "29"; });
-							if(catCards.length > 0)
-							{
-								displayElems(tagCard);
-								saveData("cards-" + appID, true);
-								flagCard = true;
-							}
+							displayElems(tagCard);
+							saveData("cards-" + appID, true);
+							flagCard = true;
 						}
-						if(cbAchievement)
+						else
+							saveData("cards-" + appID, false);
+
+						var catAchievement = $.grep(categories, function(e){ return e.id == "22"; });
+						if(catAchievement.length > 0)
 						{
-							var catAchievement = $.grep(categories, function(e){ return e.id == "22"; });
-							if(catAchievement.length > 0)
-							{
-								displayElems(tagAchievement);
-								saveData("achievements-" + appID, true);
-								flagAchievement = true;
-							}
+							displayElems(tagAchievement);
+							saveData("achievements-" + appID, true);
+							flagAchievement = true;
 						}
+						else
+							saveData("achievements-" + appID, false);
 					}
 					else
 						console.log("[SG Game Tags] apps " + appID + " does not have categories");
 
-					if(reqCard && !flagCard)
-						saveData("cards-" + appID, false);
-					if(reqAchievement && !flagAchievement)
-						saveData("achievements-" + appID, false);
-
 					// get steam apps platforms: linux: boolean, mac: boolean
 					var platforms = obj.platforms;
-					if(platforms.linux == true && cbLinux)
-					{
-						displayElems(tagLinux);
-						saveData("linux-" + appID, true);
-					}
-					else
-						saveData("linux-" + appID, false);
-					if(platforms.mac == true && cbMac)
-					{
-						displayElems(tagMac);
-						saveData("mac-" + appID, true);
-					}
-					else
-						saveData("mac-" + appID, false);
+					if(platforms.linux == true && cbLinux) displayElems(tagLinux);
+					if(platforms.mac   == true && cbMac)   displayElems(tagMac);
+					saveData("linux-" + appID, platforms.linux);
+					saveData("mac-"   + appID, platforms.mac);
 				}
 			}
 		});

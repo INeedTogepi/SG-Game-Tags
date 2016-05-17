@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.11.10
+// @version      2.11.10.1
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -222,7 +222,7 @@ function ProcessTags(Target, URL, Name)
 	var tagCard = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, Target);
 	var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
 	var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
-	var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, URL, tagWishlist);
+	var tagLinux = createTag(ClassLinux, TitleLinux, TextLinux, URL, tagBundle);
 	var tagMac = createTag(ClassMac, TitleMac, TextMac, URL, tagLinux);
 
 	if(isApp(URL))
@@ -394,6 +394,7 @@ function getBundleStatus(appID, appName, elems)
 
 function getHiddenStatus(appID, appName, elems)
 {
+	console.log("masuk hidden");
 	if(cbHidden)
 	{
 		console.log("[SG Game Tags] Request hidden " + appID + " - " + appName);
@@ -417,6 +418,7 @@ function getHiddenStatus(appID, appName, elems)
 
 function getWishlistStatus(appID, appName, elems)
 {
+	console.log("masuk wishlist");
 	if(cbWishlist)
 	{
 		console.log("[SG Game Tags] Request wishlist " + appID + " - " + appName);

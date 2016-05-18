@@ -1,0 +1,73 @@
+2.11.10
+- Now saves steam data eventhough the tags is not turned on.
+
+2.11.9
+- Restructured codes
+- Change all url filter to use regex
+
+2.11.6
+- Fixed script crashing if featured giveaway has no image
+
+2.11.5
+- Fixed bug bundled tags not appearing when there is [NEW] or [FREE] in the name because of ext SG
+
+2.11.2
+- Fixed tags appearing in group member list page.
+
+2.11.1
+- Added support to Endless scroll.
+
+2.10.3
+- Fixed bug not showing bundle, wishlist, and hidden tag if the game title is too long (over 40 characters) by substr the game title to first 30 characters.
+
+2.10.2
+- Changed target class button save changes to js__submit-form. Should fix bug with ext SG & setting appear in space cat pop up.
+
+2.10.1
+- Fixed linux & mac tags still showing after turned off when loading new game.
+
+2.10
+- Added linux and mac tags.
+- Fix problem unable to get data from packages.
+
+2.9
+- Fix tampermonkey cross origin policy warning.
+
+2.8
+- Added "Wishlist" tag.
+- Added support to http://www.steamgifts.com/account/steam/wishlist and http://www.steamgifts.com/account/steam/games.
+
+2.7
+- Added support to sales page.
+
+2.6
+- Added @connect for new cross origin policy with tampermonkey
+
+2.5
+- Fixed checkbox problem with firefox.
+
+2.4
+- Reoptimized request data to Steam for Trading Cards and Achievements tags. Now 1 request for 1 game instead of separate requests for Trading Cards and Achievements.
+- Added User Preferences to enable/disable tags in http://www.steamgifts.com/account/settings/giveaways.
+- Changed tags border-radius from 20px to 4px to match SG theme.
+
+2.3
+- Fixed bundled & hidden tags for game with (+) in its name.
+
+2.2
+- Added support to http://www.steamgifts.com/group/.
+
+2.0
+- Added support to "created", "entered", "won", "filters", "new", and community wishlist page.
+- Changed tags location under the game's title. Now I can add more tags. So "Cards" tag changed back to "Trading Cards".
+- Added Achievements & Hidden tags. Hidden tags only appear inside giveaway page.
+- Change tags link for packages, now opens steam storepage.
+
+1.0
+- Requested data is now saved. The scripts now assume if the game has trading cards or is bundled, it will always be.
+- Added check to all of the games in package to see if one of them has trading cards.
+- Error handling in some pages.
+- The scripts will try to print out error description in console logs. (for advance user).
+
+0.1
+- First Release.

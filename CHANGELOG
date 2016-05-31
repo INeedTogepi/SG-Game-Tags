@@ -1,18 +1,28 @@
+2.12
+- Added Early Access Tag, default is off.
+- Changed Linux, Mac default as off.
+- Added minimalist tag as option.
+- Changed wishlist tag background color.
+- Changed steamapi link : added genres in filter params.
+- Changed packageapi link : removed filters params because it doesn't filter the result.
+- Changed tag classes for their usage (preparation for custom color tag).
+- Added hover text in SG Game Tags setting.
+
 2.11.10
 - Now saves steam data eventhough the tags is not turned on.
 
 2.11.9
-- Restructured codes
-- Change all url filter to use regex
+- Restructured codes, makes it possible to merge with minimalist version.
+- Change all url filter to use regex.
 
 2.11.6
-- Fixed script crashing if featured giveaway has no image
+- Fixed script crashing if featured giveaway has no image.
 
 2.11.5
-- Fixed bug bundled tags not appearing when there is [NEW] or [FREE] in the name because of ext SG
+- Fixed bug bundled tags not appearing when there is [NEW] or [FREE] in the name because of ext SG.
 
 2.11.2
-- Fixed tags appearing in group member list page.
+- Fixed bug tags appearing in group member list page.
 
 2.11.1
 - Added support to Endless scroll.
@@ -31,7 +41,7 @@
 - Fix problem unable to get data from packages.
 
 2.9
-- Fix tampermonkey cross origin policy warning.
+- Updated script because SG becomes https.
 
 2.8
 - Added "Wishlist" tag.

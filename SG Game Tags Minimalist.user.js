@@ -368,7 +368,6 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 					saveData("achievements-" + appID, false);
 					saveData("linux-" + appID, false);
 					saveData("mac-" + appID, false);
-					saveData("early-" + appID, false);
 				}
 				else
 				{

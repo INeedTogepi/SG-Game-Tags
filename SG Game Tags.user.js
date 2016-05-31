@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.12
+// @version      2.12.1
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -368,7 +368,6 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 					saveData("achievements-" + appID, false);
 					saveData("linux-" + appID, false);
 					saveData("mac-" + appID, false);
-					saveData("early-" + appID, false);
 				}
 				else
 				{

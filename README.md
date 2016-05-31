@@ -18,6 +18,8 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
   - "Hidden" tag will open http://www.steamgifts.com/account/settings/giveaways/filters with corresponding game.
   - "Wishlist" tag will open http://www.steamgifts.com/account/steam/wishlist with corresponding game.
   - "Linux" & "Mac" tag will open apps store page. I can't make it refer to system requirement section directly.
+  - "Early Access" tag will also open apps store page.
+- Tags can be toggled on/off at https://www.steamgifts.com/account/settings/giveaways
 - Supports SG++ and Ext SG endless scroll. Credits to Alpe who helped me with this.
 
 ## Current Tags
@@ -30,6 +32,7 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
 | "Wishlist" | This game is in your Steam wishlist |
 | "Linux" | Linux supported |
 | "Mac" | Mac supported |
+| "Early Access" | This game is in early access state |
 
 The script requires :
 - [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) for Chrome
@@ -47,6 +50,8 @@ Some games with wrong store page link won't show trading card status. e.g Left 4
 Portal Bundle store page should be [this](http://store.steampowered.com/bundle/234/), but SG shows [this](http://store.steampowered.com/sub/7932/)
 I can't do anything about that, unless SG changes it.
 
+Early Access tags is cached for 3 days, and it will not request data again if the game is not in early access. Early access data comes from Steam popular user defined tags.
+
 Feedback and bug report are always appreciated.
 
 ## Screenshots
@@ -59,54 +64,3 @@ Feedback and bug report are always appreciated.
 ![7](http://i.imgur.com/IxY9TmK.jpg)
 ![8](http://i.imgur.com/GBz0Yua.jpg)
 ![9](http://i.imgur.com/5c7r3Yc.jpg)
-
-## Changelogs
-2.11
-- Added support for SG++ and Ext SG endless scroll. Tested on Chrome and Firefox. Credits to Alpe who helped me with this.
-2.10
-- New tags (Linux & Mac).
-
-2.9
-- Update script because SG becomes https
-
-2.8
-- Added "Wishlist" tag. Only appear in giveaway page, because we already have http://www.steamgifts.com/giveaways/search?type=wishlist.
-- Added support to http://www.steamgifts.com/account/steam/wishlist and http://www.steamgifts.com/account/steam/games
-- Hopefully fix bug when SG Game Tags setting appear on winning pop-up. Not tested as I haven't won anything.
-
-2.4
-- Reoptimize request data to Steam for Trading Cards and Achievements tags. Now 1 request for 1 game instead of separate requests for Trading Cards and Achievements.
-- Added User Preferences to enable/disable tags in http://www.steamgifts.com/account/settings/giveaways.
-- Change tags border-radius from 20px to 4px to match SG theme.
-
-2.1 - 2.3
-- Added support to http://www.steamgifts.com/group/
-- Fix bug for checking bundle if the game title contains (+)
-
-2.0
-- Added support to "created", "entered", "won", "filters", "new", and community wishlist page.
-- Change tags location to below the game's title. Now I can add more tags. So "Cards" tag changed back to "Trading Cards".
-- Added Achievements & Hidden tags. Hidden tags only appear in giveaway page.
-- Change tags link for packages, now opens steam storepage.
-
-1.0
-- Requested data is now saved. The scripts now assume if the game has trading cards or is bundled, it will always be.
-- The script now checks all of the games in package to see if one of them has trading cards.
-- Error handling in some pages. The scripts will try to print out error description in console logs. (for advance user).
-
-0.2
-- Use GM_xmlhttpRequest instead of cors.io to bypass CORS problem.
-- Changed "Trading Cards" to "Cards" for a while because of space problem.
-
-0.1	First Release.
-
-## To Do List
-- ~~Compatibility to endless scroll giveaway list.~~ (done)
-- Add button to manually resend request data to bypass cached data.
-- Find a way to store Hidden & Wishlist data efficiently so it won't make too much request to SG. If I manage to do this, Wishlist tag can be shown anywhere else.
-- Show steam user reviews score. Actually Alpe built the script for this feature http://www.steamgifts.com/discussion/ZH7th/userscript-steamgifts-steam-ratings.
-- Sidebar giveaway filter :
-  - Show all / Show games with Trading card only.
-  - Show all / Show bundled games / Show Non bundled games.
-  - Show all / Show games with achievement only.
-- Custom colors for tags. Change the tags color the way you want.

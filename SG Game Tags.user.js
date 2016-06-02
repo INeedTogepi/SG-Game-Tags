@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      2.12.1
+// @version      2.12.2
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -264,8 +264,8 @@ function ProcessTags(Target, URL, Name)
 		}
 		else if(cbTagStyle == 2)
 		{
-			var tagHidden = createTag(ClassHidden + " tags-minimalist", TitleHidden, TextHidden, linkHidden+Name, Target);
-			var tagWishlist = createTag(ClassWishlist + " tags-minimalist", TitleWishlist, TextWishlist, linkWishlist+Name, Target);
+			var tagHidden = createTag(ClassHidden + " tags-minimalist", TitleHidden, TextHidden.substring(0,1), linkHidden+Name, Target);
+			var tagWishlist = createTag(ClassWishlist + " tags-minimalist", TitleWishlist, TextWishlist.substring(0,1), linkWishlist+Name, Target);
 		}
 		getHiddenStatus(ID, Name, tagHidden);
 		getWishlistStatus(ID, Name, tagWishlist);

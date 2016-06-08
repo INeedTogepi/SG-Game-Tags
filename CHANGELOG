@@ -1,3 +1,8 @@
+3.1
+- Changed way to get bundle status by using server to save bundle list. Won't make request to steamgifts for every game.
+- New setting to custom tag background and text color.
+- Added Bundled Date to Bundle tag.
+
 2.12
 - Added Early Access Tag, default is off.
 - Changed Linux, Mac default as off.

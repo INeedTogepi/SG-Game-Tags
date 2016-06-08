@@ -60,13 +60,6 @@ myCSS = '<style> \
 		.my__checkbox:not(:hover) .form__checkbox__hover,.my__checkbox.is-selected .form__checkbox__hover,.my__checkbox:not(.is-selected) .form__checkbox__selected,.my__checkbox:hover .form__checkbox__default,.my__checkbox.is-selected .form__checkbox__default { \
 			display:none \
 		} \
-		.form__color-picker { line-height: 23px; } \
-		input[type="color" i].my__color-picker { \
-			width: 63px; \
-			height: 23px; \
-			padding: 0; \
-			margin-right: 8px; \
-		} \
 	</style>';
 
 $("head").append(myCSS);
@@ -649,7 +642,6 @@ function initSetting()
 	var no = $(".form__heading").length + 1;
 	initTagOnOffSetting(no);
 	initTagPositionSetting(no+1);
-	initTagColorSetting(no+2);
 }
 
 function initTagOnOffSetting(no)
@@ -772,35 +764,6 @@ function initTagPositionSetting(no)
 	$(desc).appendTo([form__row__indent]);
 }
 
-function initTagColorSetting(no)
-{
-	var form__row = document.createElement("div");
-	form__row.setAttribute("class", "form__row");
-
-		var form__heading = document.createElement("div");
-		form__heading.setAttribute("class", "form__heading");
-
-			var form__heading__number = document.createElement("div");
-			form__heading__number.setAttribute("class", "form__heading__number");
-			form__heading__number.innerHTML = no + ".";
-
-			var form__heading__text = document.createElement("div");
-			form__heading__text.setAttribute("class", "form__heading__text");
-			form__heading__text.setAttribute("title", "Change the background color for each tags.\nThis setting doesn't affect performance, only visual change.");
-			form__heading__text.innerHTML = "[SG Game Tags] Tags Colors";
-
-		$(form__heading).append(form__heading__number).append(form__heading__text);
-
-	$(form__row).append(form__heading);//.append(form__row__indent);
-
-	$(".js__submit-form").before(form__row);
-
-	var desc = document.createElement("div");
-	desc.setAttribute("class", "form__input-description");
-	desc.innerHTML = "No need to press Save Changes button. It is automatically saved when the value changed.";
-	$(desc).appendTo([form__row__indent]);
-}
-
 function createCheckBox(_class, _html, cbValue)
 {
 	var cb = document.createElement("div");
@@ -874,9 +837,4 @@ function changeCBColor()
 
 	$(".my__checkbox.is-disabled").css("color", colorCBDisabled);
 	$(".my__checkbox.is-selected").css("color", colorCBSelected);
-}
-
-function createColorPicker(value, text)
-{
-
 }

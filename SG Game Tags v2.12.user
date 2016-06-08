@@ -1,14 +1,13 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.0
+// @version      2.12.2
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
 // @include      http://www.steamgifts.com/*
 // @include      https://www.steamgifts.com/*
 // @connect      steampowered.com
-// @connect      ruphine.esy.es
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @grant        GM_deleteValue
 // @grant        GM_getValue
@@ -66,15 +65,14 @@ $("head").append(myCSS);
 
 
 /* Constant Variables */
-const linkBundle = "https://www.steamgifts.com/bundle-games/search?q="
 const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid-";
 const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievements/";
+const linkBundle = "https://www.steamgifts.com/bundle-games/search?q=";
 const linkHidden = "https://www.steamgifts.com/account/settings/giveaways/filters/search?q=";
 const linkWishlist = "https://www.steamgifts.com/account/steam/wishlist/search?q=";
 
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories,platforms,genres&appids=";
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?packageids=";
-const linkBundleAPI = "http://ruphine.esy.es/GetBundleStatus.php"; //?AppID=325470
 
 const ClassCard = "tags tags-card";
 const TitleCard = "This game has trading cards";
@@ -122,29 +120,7 @@ var cbEarly = GM_getValue("cbEarly", false);
 
 var cbTagStyle = GM_getValue("cbTagStyle", 1); //1 = full, 2 = minimalist
 
-var BundledGames = GM_getValue("BundledGames", "");
-var BundledCache = GM_getValue("BundledCache", new Date("1970-01-01").getTime());
-
-//delete old bundled data from v2
-var JustUpdate = GM_getValue("JustUpdate", true);
-if(JustUpdate)
-{
-	var keys = GM_listValues();
-	for (var i=0; i<keys.length; i++) {
-		var key = keys[i];
-		if(key.substring(0,8) == "bundled-")
-		{
-			console.log(key);
-			GM_deleteValue(key);
-		}
-	}
-	GM_setValue("JustUpdate", false);
-}
-
-if(cbBundled && BundledCache < Date.now() - 6*60*60*1000) //6 hours
-	getBundleList();
-else
-	main();
+main();
 
 function main()
 {
@@ -304,8 +280,7 @@ function ProcessTags(Target, URL, Name)
 		getSteamCategoriesFromPackage(ID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly);
 	}
 
-	var type = isApp(URL) ? 1 : 2;
-	getBundleStatus(ID, type, tagBundle);
+	getBundleStatus(ID, Name, tagBundle);
 }
 
 function createTag(_class, title, text, href, divTarget)
@@ -444,40 +419,39 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 	}
 }
 
-function getBundleStatus(appID, type, tag)
+function getBundleStatus(appID, appName, elems)
 {
-	if(type == 1)
-		appID = "A" + appID;
-	else if(type == 2)
-		appID = "S" + appID;
-
-	var obj = JSON.parse(BundledGames);
-
-	var Game = $.grep(obj, function(e){ return e.AppID == appID; });
-	if(Game.length > 0) //game found in bundle list
+	if(cbBundled)
 	{
-		displayElems(tag);
-	}
-}
-
-function getBundleList()
-{
-	console.log("[SG Game Tags] Request Bundle List");
-	GM_xmlhttpRequest({
-		method: "GET",
-		timeout: 10000,
-		url: linkBundleAPI,
-		onload: function(data)
+		var jsonBundle = GM_getValue("bundled-" + appID, "");
+		if(!needRequest(jsonBundle))
 		{
-			BundledGames = data.responseText;
-			GM_setValue("BundledGames", BundledGames);
-
-			BundledCache = Date.now();
-			GM_setValue("BundledCache", BundledCache);
-
-			main();
+			if(JSON.parse(jsonBundle).val)
+				displayElems(elems);
 		}
-	});
+		else
+		{
+			console.log("[SG Game Tags] Request bundle " + appID + " - " + appName);
+			$.get( linkBundle+appName, function(data)
+			{
+				var gamesfound = $(data).find(".table__column__secondary-link");
+				for(i=0; i<$(gamesfound).length; i++)
+				{
+					var url = $(gamesfound)[i].href;
+					var ID = getAppIDfromLink(url);
+
+					if(appID == ID)
+					{
+						//TODO : Save appID + true ke local cache
+						displayElems(elems);
+						saveData("bundled-" + appID, true);
+						return true; //exit function
+					}
+				}
+				saveData("bundled-" + appID, false);
+			});
+		}
+	}
 }
 
 function getHiddenStatus(appID, appName, elems)

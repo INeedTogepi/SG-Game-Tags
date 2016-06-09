@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.0
+// @version      3.0.1
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -124,22 +124,6 @@ var cbTagStyle = GM_getValue("cbTagStyle", 1); //1 = full, 2 = minimalist
 
 var BundledGames = GM_getValue("BundledGames", "");
 var BundledCache = GM_getValue("BundledCache", new Date("1970-01-01").getTime());
-
-//delete old bundled data from v2
-var JustUpdate = GM_getValue("JustUpdate", true);
-if(JustUpdate)
-{
-	var keys = GM_listValues();
-	for (var i=0; i<keys.length; i++) {
-		var key = keys[i];
-		if(key.substring(0,8) == "bundled-")
-		{
-			console.log(key);
-			GM_deleteValue(key);
-		}
-	}
-	GM_setValue("JustUpdate", false);
-}
 
 if(cbBundled && BundledCache < Date.now() - 6*60*60*1000) //6 hours
 	getBundleList();

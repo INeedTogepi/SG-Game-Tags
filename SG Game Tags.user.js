@@ -4,7 +4,6 @@
 // @version      3.0.3
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
-
 // @include      http://www.steamgifts.com/*
 // @include      https://www.steamgifts.com/*
 // @connect      steampowered.com
@@ -66,7 +65,7 @@ $("head").append(myCSS);
 
 
 /* Constant Variables */
-const linkBundle = "https://www.steamgifts.com/bundle-games/search?q="
+const linkBundle = "https://www.steamgifts.com/bundle-games/search?q=";
 const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid-";
 const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievements/";
 const linkHidden = "https://www.steamgifts.com/account/settings/giveaways/filters/search?q=";

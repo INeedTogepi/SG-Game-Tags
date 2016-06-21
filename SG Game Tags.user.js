@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.0.1
+// @version      3.0.3
 // @description  Shows some tags of the game in Steamgifts.
 // @author       Ruphine
 
@@ -74,7 +74,7 @@ const linkWishlist = "https://www.steamgifts.com/account/steam/wishlist/search?q
 
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories,platforms,genres&appids=";
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?packageids=";
-const linkBundleAPI = "http://ruphine.esy.es/GetBundleStatus.php"; //?AppID=325470
+const linkBundleAPI = "http://ruphine.esy.es/GetBundleStatus2.php"; //?AppID=325470
 
 const ClassCard = "tags tags-card";
 const TitleCard = "This game has trading cards";
@@ -288,7 +288,7 @@ function ProcessTags(Target, URL, Name)
 		getSteamCategoriesFromPackage(ID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly);
 	}
 
-	var type = isApp(URL) ? 1 : 2;
+	var type = isApp(URL) ? 'app' : 'sub';
 	getBundleStatus(ID, type, tagBundle);
 }
 
@@ -430,14 +430,9 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 
 function getBundleStatus(appID, type, tag)
 {
-	if(type == 1)
-		appID = "A" + appID;
-	else if(type == 2)
-		appID = "S" + appID;
-
 	var obj = JSON.parse(BundledGames);
 
-	var Game = $.grep(obj, function(e){ return e.AppID == appID; });
+	var Game = $.grep(obj, function(e){ return (e.AppID == appID && e.Type == type); });
 	if(Game.length > 0) //game found in bundle list
 	{
 		displayElems(tag);
@@ -598,7 +593,9 @@ function NewGiveawayDivUpdated(event)
 			$(".js__autocomplete-data").off("DOMNodeInserted");
 			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
 			$(tagBundle).css("float", "right");
-			getBundleStatus(ID, Name, tagBundle);
+
+			var type = isApp(url) ? 'app' : 'sub';
+			getBundleStatus(ID, type, tagBundle);
 		});
 		if(gamesfound.length > 0)
 		{
@@ -611,7 +608,8 @@ function NewGiveawayDivUpdated(event)
 				var Name = $(this).find(".table__column__heading").text();
 				var Target = $(".js__autocomplete-name")[0];
 				tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
-				getBundleStatus(ID, Name, tagBundle);
+				var type = isApp(url) ? 'app' : 'sub';
+				getBundleStatus(ID, type, tagBundle);
 			});
 		}
 	}

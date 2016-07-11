@@ -1,0 +1,24 @@
+- New setting to custom tag background and text color. I'm considering to make a separate page for SG Game Tags setting.
+- New tags (Owned and Not Interested). Requires login to steam with current browser. Cache time 6 hours.
+- New button to refresh Bundle, Wishlist, Owned, Not Interested cache.
+- New tags (other steam categories, other steam user defined tags). Only by hovering the mouse.
+
+
+- FAQ in discussion
+  1. How to disable tags I don't need?
+     > https://www.steamgifts.com/account/settings/giveaways
+  2. How to report a problem with this script?
+     
+  3. The game is bundled but Bundle tag is not showing.
+     > There is some reason for this :
+       - It's just been bundled less than 6 hours ago.
+       - Bug. Report to me if you spot a game with bundle date over than 6 hours ago but the bundle tag isn't showing.
+
+
+
+Low priority
+- Show Hidden tags outside giveaway page too.
+- Add support to gridview.
+- Add setting to use icons instead of current tags.
+- New tags (Steam User Reviews).
+- 

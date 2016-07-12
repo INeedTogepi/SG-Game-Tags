@@ -4,6 +4,7 @@
 - Optimized Wishlist tags and it now appears outside giveaway page too. (done)
 - Bundle, Wishlist tags cache time reduced to 6 hours. Trading Cards, Achievement, Mac, Linux, Early Access still 24 hours. (done)
 - Changed how the script saves data. Now Trading Cards, Achievement, Mac, Linux, Early Access data saved as 1 data instead of 5 data per games. May reduce lags because of too many data stored. Need reinstall the script. (done)
+- Changed how the script process game title when ExtSG installed. It now ignores [NEW] and [FREE] instead of remove them in case ExtSG gets another tags.
 
 2.12
 - Added Early Access Tag, default is off.

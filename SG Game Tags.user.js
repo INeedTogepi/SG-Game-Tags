@@ -203,8 +203,7 @@ function main()
 
 function ProcessFeaturedGiveaway(URL)
 {
-	var Name = $(".featured__heading__medium").text().substring(0,30);
-	Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
+	var Name = $(".featured__heading__medium").text().substring(0,45); //letter after 45th converted to ...
 	var Target = $(".featured__heading");
 
 	ProcessTags(Target, URL, Name);
@@ -217,10 +216,13 @@ function ProcessGiveawayListPage(scope) // giveaways list with creator name
 		var URL = $(element).find("a.giveaway__icon").attr("href");
 		if(URL != null)
 		{
-			var Name = $(element).find(".giveaway__heading__name").text().substring(0,30);
-			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
+			var Name = $(element).find(".giveaway__heading__name").contents().filter(
+				function() //return text without [NEW] and [FREE]
+				{
+					return this.nodeType === 3; //Node.TEXT_NODE
+				}
+			).slice(-1)[0].textContent.substring(0,40); //letter after 40th converted to ...
 			var Target = $(element).find(".giveaway__heading");
-
 			ProcessTags(Target, URL, Name);
 		}
 	});
@@ -240,7 +242,6 @@ function ProcessGameListPage() // giveaways / games list
 		{
 			URL = URL.replace('url(', '').replace(')', '');
 			var Name = $(element).find(".table__column__heading").text().substring(0,30);
-			Name = Name.replace("+", "%2B").replace("[NEW] ", "").replace("[FREE] ", ""); //remove [NEW] and [FREE] to make it work with ext SG
 			var Target = $(element).find(".table__column--width-fill > :first-child");
 
 			if(/www.steamgifts.com\/sales/.test(THIS_URL)) Target.css("display", "block"); //because sales pages don't use <p> thus tags will appears in line with title
@@ -253,38 +254,38 @@ function ProcessGameListPage() // giveaways / games list
 function ProcessTags(Target, URL, Name)
 {
 	var ID = getAppIDfromLink(URL);
+	Name = encodeURIComponent(Name); //encode special characters that may break search params
 	var linkStore = "";
 	if(isApp(URL))
 		linkStore = "http://store.steampowered.com/app/" + ID;
 	else if(isPackage(URL))
-	{
 		linkStore = "http://store.steampowered.com/sub/" + ID;
-	}
+
 	if(cbTagStyle == 1)
 	{
 		var tagCard        = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, Target);
 		var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
 		var tagBundle      = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
-		var tagLinux       = createTag(ClassLinux, TitleLinux, TextLinux, linkStore, tagBundle);
+		var tagWishlist    = createTag(ClassWishlist, TitleWishlist, TextWishlist, linkWishlist+Name, tagBundle);
+		var tagLinux       = createTag(ClassLinux, TitleLinux, TextLinux, linkStore, tagWishlist);
 		var tagMac         = createTag(ClassMac, TitleMac, TextMac, linkStore, tagLinux);
 		var tagEarly       = createTag(ClassEarly, TitleEarly, TextEarly, linkStore, tagMac);
-		var tagWishlist    = createTag(ClassWishlist, TitleWishlist, TextWishlist, linkWishlist+Name, tagMac);
 	}
 	else
 	{
 		var tagCard        = createTag(ClassCard + " tags-minimalist", TitleCard, TextCard.substring(0,1), linkCard+ID, Target);
 		var tagAchievement = createTag(ClassAchievement + " tags-minimalist", TitleAchievement, TextAchievement.substring(0,1), linkAchievement+ID+"/achievements/", Target);
 		var tagBundle      = createTag(ClassBundle + " tags-minimalist", TitleBundle, TextBundle.substring(0,1), linkBundle+Name, Target);
+		var tagWishlist    = createTag(ClassWishlist + " tags-minimalist", TitleWishlist, TextWishlist.substring(0,1), linkWishlist+Name, Target);
 		var tagLinux       = createTag(ClassLinux + " tags-minimalist", TitleLinux, TextLinux.substring(0,1), linkStore, Target);
 		var tagMac         = createTag(ClassMac + " tags-minimalist", TitleMac, TextMac.substring(0,1), linkStore, Target);
 		var tagEarly       = createTag(ClassEarly + " tags-minimalist", TitleEarly, TextEarly.substring(0,1), linkStore, Target);
-		var tagWishlist    = createTag(ClassWishlist + " tags-minimalist", TitleWishlist, TextWishlist.substring(0,1), linkWishlist+Name, Target);
 	}
 
 	if(/www.steamgifts.com\/giveaway\//.test(THIS_URL)) //only trigger inside giveaway page, no need for homepage
 	{
 		if(cbTagStyle == 1)
-			var tagHidden = createTag(ClassHidden, TitleHidden, TextHidden, linkHidden+Name, tagWishlist);
+			var tagHidden = createTag(ClassHidden, TitleHidden, TextHidden, linkHidden+Name, tagEarly);
 		else if(cbTagStyle == 2)
 			var tagHidden = createTag(ClassHidden + " tags-minimalist", TitleHidden, TextHidden.substring(0,1), linkHidden+Name, Target);
 

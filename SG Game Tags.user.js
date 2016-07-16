@@ -74,6 +74,7 @@ const linkWishlist = "https://www.steamgifts.com/account/steam/wishlist/search?q
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories,platforms,genres&appids=";
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?packageids=";
 const linkBundleAPI = "http://ruphine.esy.es/GetBundleStatus2.php"; //?AppID=325470
+const linkUserAPI = "http://store.steampowered.com/dynamicstore/userdata/";
 
 const ClassCard = "tags tags-card";
 const TitleCard = "This game has trading cards";

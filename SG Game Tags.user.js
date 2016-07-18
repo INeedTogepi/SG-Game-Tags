@@ -1,11 +1,10 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.1
+// @version      3.1.3
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
-// @include      http://www.steamgifts.com/*
-// @include      https://www.steamgifts.com/*
+// @match        *://www.steamgifts.com/*
 // @icon         https://cdn.steamgifts.com/img/favicon.ico
 // @connect      steampowered.com
 // @connect      ruphine.esy.es
@@ -124,25 +123,43 @@ var cbEarly = GM_getValue("cbEarly", false);
 var cbTagStyle = GM_getValue("cbTagStyle", 1); //1 = full, 2 = minimalist
 
 var BundledGames = GM_getValue("BundledGames", "");
-var BundledCache = GM_getValue("BundledCache", new Date("1970-01-01").getTime());
+var BundledCache = GM_getValue("BundledCache", 0);
 var UserdataAPI = GM_getValue("UserdataAPI", "");
-var UserdataCache = GM_getValue("UserdataCache", new Date("1970-01-01").getTime());
+var UserdataCache = GM_getValue("UserdataCache", 0);
 var GameData = GM_getValue("GameData", "");
 var PackageData = GM_getValue("PackageData", "");
+
 var rgWishlist;
+var arrBundled;
 
 if(cbBundled && BundledCache < Date.now() - 6*60*60*1000) //6 hours
 	getBundleList();
-else if((cbWishlist) && UserdataCache < Date.now() - 6*60*60*1000) //6 hours
+else if(cbWishlist && UserdataCache < Date.now() - 6*60*60*1000) //6 hours
 	getUserdata();
 else
 	main();
 
 function main()
 {
-	rgWishlist = JSON.parse(UserdataAPI).rgWishlist;
-	if(GameData == "")
-		PrepareJSON();
+	try {
+		arrBundled = JSON.parse(BundledGames);
+	}
+	catch (e) {
+		console.log("[SG Game Tags] Invalid json format for Bundle List");
+		BundledGames = ""; GM_setValue("BundledGames", "");
+		BundledCache = 0;  GM_setValue("BundledCache", 0);
+	}
+
+	try {
+		rgWishlist = JSON.parse(UserdataAPI).rgWishlist;
+	}
+	catch (e) {
+		console.log("[SG Game Tags] Invalid json format for Wishlist");
+		UserdataAPI = ""; GM_setValue("UserdataAPI", "");
+		UserdataCache = 0; GM_setValue("UserdataCache", 0);
+	}	
+
+	if(GameData == "") PrepareJSON();
 	else
 	{
 		GameData = JSON.parse(GameData);
@@ -302,8 +319,10 @@ function ProcessTags(Target, URL, Name)
 	}
 
 	var type = isApp(URL) ? 'app' : 'sub';
-	getBundleStatus(ID, type, tagBundle);
-	getWishlistStatus(ID, tagWishlist);
+	if(cbBundled && BundledGames != "")
+		getBundleStatus(ID, type, tagBundle);
+	if(cbWishlist && UserdataAPI != "" && rgWishlist.length > 0)
+		getWishlistStatus(ID, tagWishlist);
 }
 
 function createTag(_class, title, text, href, divTarget)
@@ -433,8 +452,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 
 function getBundleStatus(appID, type, tag)
 {
-	var obj = JSON.parse(BundledGames);
-	var Game = $.grep(obj, function(e){ return (e.AppID == appID && e.Type == type); });
+	var Game = $.grep(arrBundled, function(e){ return (e.AppID == appID && e.Type == type); });
 	if(Game.length > 0) //game found in bundle list
 	{
 		displayElems(tag);
@@ -455,8 +473,7 @@ function getBundleList()
 
 			BundledCache = Date.now();
 			GM_setValue("BundledCache", BundledCache);
-
- 			if((cbWishlist) && UserdataCache < Date.now() - 6*60*60*1000) //6 hours
+ 			if(cbWishlist && UserdataCache < Date.now() - 6*60*60*1000) //6 hours
  				getUserdata();
  			else
 				main();
@@ -464,7 +481,7 @@ function getBundleList()
 		ontimeout: function(data)
 		{
 			console.log("[SG Game Tags] Request " + linkBundleAPI + " Timeout");
-			if((cbWishlist) && UserdataCache < Date.now() - 6*60*60*1000) //6 hours
+			if(cbWishlist && UserdataCache < Date.now() - 6*60*60*1000) //6 hours
  				getUserdata();
  			else
 				main();
@@ -481,6 +498,7 @@ function getUserdata()
 		onload: function(data)
 		{
 			UserdataAPI = data.responseText;
+			JSON.parse(UserdataAPI);
 			GM_setValue("UserdataAPI", UserdataAPI);
 
 			UserdataCache = Date.now();
@@ -519,12 +537,9 @@ function getHiddenStatus(appID, appName, elems)
 
 function getWishlistStatus(appID, elems)
 {
-	if(cbWishlist)
-	{
-		appID = parseInt(appID);
-		if(rgWishlist.indexOf(appID) >= 0)
-			displayElems(elems);
-	}
+	appID = parseInt(appID);
+	if(rgWishlist.indexOf(appID) >= 0)
+		displayElems(elems);
 }
 
 function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly)

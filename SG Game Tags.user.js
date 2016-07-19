@@ -9,6 +9,7 @@
 // @connect      steampowered.com
 // @connect      ruphine.esy.es
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js
 // @grant        GM_deleteValue
 // @grant        GM_getValue
 // @grant        GM_listValues
@@ -280,23 +281,23 @@ function ProcessTags(Target, URL, Name)
 
 	if(cbTagStyle == 1)
 	{
-		var tagCard        = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, Target);
+		var tagBundle      = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
+		var tagCard        = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, tagBundle);
 		var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
-		var tagBundle      = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, tagAchievement);
-		var tagWishlist    = createTag(ClassWishlist, TitleWishlist, TextWishlist, linkWishlist+Name, tagBundle);
+		var tagWishlist    = createTag(ClassWishlist, TitleWishlist, TextWishlist, linkWishlist+Name, tagAchievement);
 		var tagLinux       = createTag(ClassLinux, TitleLinux, TextLinux, linkStore, tagWishlist);
 		var tagMac         = createTag(ClassMac, TitleMac, TextMac, linkStore, tagLinux);
 		var tagEarly       = createTag(ClassEarly, TitleEarly, TextEarly, linkStore, tagMac);
 	}
 	else
 	{
-		var tagCard        = createTag(ClassCard + " tags-minimalist", TitleCard, TextCard.substring(0,1), linkCard+ID, Target);
-		var tagAchievement = createTag(ClassAchievement + " tags-minimalist", TitleAchievement, TextAchievement.substring(0,1), linkAchievement+ID+"/achievements/", Target);
-		var tagBundle      = createTag(ClassBundle + " tags-minimalist", TitleBundle, TextBundle.substring(0,1), linkBundle+Name, Target);
-		var tagWishlist    = createTag(ClassWishlist + " tags-minimalist", TitleWishlist, TextWishlist.substring(0,1), linkWishlist+Name, Target);
-		var tagLinux       = createTag(ClassLinux + " tags-minimalist", TitleLinux, TextLinux.substring(0,1), linkStore, Target);
-		var tagMac         = createTag(ClassMac + " tags-minimalist", TitleMac, TextMac.substring(0,1), linkStore, Target);
-		var tagEarly       = createTag(ClassEarly + " tags-minimalist", TitleEarly, TextEarly.substring(0,1), linkStore, Target);
+		var tagBundle      = createTag(ClassBundle + " tags-minimalist", TitleBundle, "B", linkBundle+Name, Target);
+		var tagCard        = createTag(ClassCard + " tags-minimalist", TitleCard, "T", linkCard+ID, Target);
+		var tagAchievement = createTag(ClassAchievement + " tags-minimalist", TitleAchievement, "A", linkAchievement+ID+"/achievements/", Target);
+		var tagWishlist    = createTag(ClassWishlist + " tags-minimalist", TitleWishlist, "W", linkWishlist+Name, Target);
+		var tagLinux       = createTag(ClassLinux + " tags-minimalist", TitleLinux, "L", linkStore, Target);
+		var tagMac         = createTag(ClassMac + " tags-minimalist", TitleMac, "M", linkStore, Target);
+		var tagEarly       = createTag(ClassEarly + " tags-minimalist", TitleEarly, "E", linkStore, Target);
 	}
 
 	if(/www.steamgifts.com\/giveaway\//.test(THIS_URL)) //only trigger inside giveaway page, no need for homepage
@@ -304,7 +305,7 @@ function ProcessTags(Target, URL, Name)
 		if(cbTagStyle == 1)
 			var tagHidden = createTag(ClassHidden, TitleHidden, TextHidden, linkHidden+Name, tagEarly);
 		else if(cbTagStyle == 2)
-			var tagHidden = createTag(ClassHidden + " tags-minimalist", TitleHidden, TextHidden.substring(0,1), linkHidden+Name, Target);
+			var tagHidden = createTag(ClassHidden + " tags-minimalist", TitleHidden, "H", linkHidden+Name, Target);
 
 		getHiddenStatus(ID, Name, tagHidden);
 	}
@@ -678,6 +679,7 @@ function initSetting()
 	var no = $(".form__heading").length + 1;
 	initTagOnOffSetting(no);
 	initTagPositionSetting(no+1);
+	initTagColorSetting(no+2);
 }
 
 function initTagOnOffSetting(no)
@@ -731,9 +733,7 @@ function initTagOnOffSetting(no)
 			.append(form__checkbox_7)
 			.append(form__checkbox_8);
 
-	$(form__row).append(form__heading).append(form__row__indent);
-
-	$(".js__submit-form").before(form__row);
+	$(form__row).append(form__heading).append(form__row__indent).insertBefore(".js__submit-form");
 
 	var desc = document.createElement("div");
 	desc.setAttribute("class", "form__input-description");
@@ -790,14 +790,82 @@ function initTagPositionSetting(no)
 
 		$(form__row__indent).append(form__checkbox_1).append(form__checkbox_2);
 
-	$(form__row).append(form__heading).append(form__row__indent);
-
-	$(".js__submit-form").before(form__row);
+	$(form__row).append(form__heading).append(form__row__indent).insertBefore(".js__submit-form");
 
 	var desc = document.createElement("div");
 	desc.setAttribute("class", "form__input-description");
 	desc.innerHTML = "No need to press Save Changes button. It is automatically saved when the value changed.";
 	$(desc).appendTo([form__row__indent]);
+}
+
+function initTagColorSetting(no)
+{
+	var require = ' \
+		<style type="text/css"> \
+			.row div { display: inline-block; } \
+		</style> \
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css" /> \
+	';
+
+	$("head").append(require);
+
+	var form__row = document.createElement("div");
+	form__row.setAttribute("class", "form__row");
+
+		var form__heading = document.createElement("div");
+		form__heading.setAttribute("class", "form__heading");
+
+			var form__heading__number = document.createElement("div");
+			form__heading__number.setAttribute("class", "form__heading__number");
+			form__heading__number.innerHTML = no + ".";
+
+			var form__heading__text = document.createElement("div");
+			form__heading__text.setAttribute("class", "form__heading__text");
+			form__heading__text.innerHTML = "[SG Game Tags] Customized tags color";
+
+		$(form__heading).append(form__heading__number).append(form__heading__text);
+
+		var form__row__indent = document.createElement("div");
+		form__row__indent.setAttribute("class", "form__row__indent");
+		form__row__indent.innerHTML = ' \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="bundle-1"/> \
+				<input type="text" class="colorpicker" id="bundle-2"/> \
+				<a id="tags" target="_blank" class="tags tags-bundle" style="display: inline-block;">Bundled</a> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="card-1"/> \
+				<input type="text" class="colorpicker" id="card-2"/> \
+				<a id="tags" target="_blank" class="tags tags-card" style="display: inline-block;">Trading Card</a> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="achievement-1"/> \
+				<input type="text" class="colorpicker" id="achievement-2"/> \
+				<a id="tags" target="_blank" class="tags tags-achievement" style="display: inline-block;">Achievements</a> \
+			</div>';
+
+	$(form__row).append(form__heading).append(form__row__indent).insertBefore(".js__submit-form");
+
+	var desc = document.createElement("div");
+	desc.setAttribute("class", "form__input-description");
+	desc.innerHTML = "No need to press Save Changes button. It is automatically saved when colorpicker closed.";
+	$(desc).appendTo([form__row__indent]);
+
+	if(cbTagStyle == 2)
+	{
+		$(".row a").each(function(index, element)
+		{
+			// TODO
+			$(element).text("A");
+		});
+	}
+
+	initColorpicker("bundle-1", "#E9202A", "tags-bundle", "background-color");
+	initColorpicker("bundle-2", "#FFFFFF", "tags-bundle", "color");
+	initColorpicker("card-1", "#3AA435", "tags-card", "background-color");
+	initColorpicker("card-2", "#FFFFFF", "tags-card", "color");
+	initColorpicker("achievement-1", "#305AC9", "tags-achievement", "background-color");
+	initColorpicker("achievement-2", "#FFFFFF", "tags-achievement", "color");
 }
 
 function createCheckBox(_class, _html, cbValue)
@@ -873,4 +941,24 @@ function changeCBColor()
 
 	$(".my__checkbox.is-disabled").css("color", colorCBDisabled);
 	$(".my__checkbox.is-selected").css("color", colorCBSelected);
+}
+
+function initColorpicker(id, color, tag, property)
+{
+	$("#"+id).spectrum({
+		showInput: true, // show color code and lets user input color code
+		showInitial: true, //show previous color to compare with new color
+		showPalette: true,
+		showSelectionPalette: true,
+		preferredFormat: "hex", //display hex code
+		palette: [
+			["3AA435", "E9202A", "305AC9", "9335F1", "A0522D", "E67300", "777777", "9FA027"]
+		],
+		color:color,
+		move: function(color){ $("."+tag).css(property, color.toHexString()); },
+		change: function(color){ $("."+tag).css(property, color.toHexString()); },
+		hide: function(color){
+			console.log("save background " + color.toHexString());
+		}
+	});
 }

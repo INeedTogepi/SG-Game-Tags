@@ -1,9 +1,13 @@
+3.2
+- Added feature to customized tags color
+- Added new tags (Owned and Ignored)
+
 3.1
-- Changed way to get bundle status by using server to save bundle list. Won't make request to steamgifts for every games.(done)
-- Added Bundled Date to Bundle tag, can be seen when mouse hovering to bundle tags. (done)
-- Optimized Wishlist tags and it now appears outside giveaway page too. (done)
-- Bundle, Wishlist tags cache time reduced to 6 hours. Trading Cards, Achievement, Mac, Linux, Early Access still 24 hours. (done)
-- Changed how the script saves data. Now Trading Cards, Achievement, Mac, Linux, Early Access data saved as 1 data instead of 5 data per games. May reduce lags because of too many data stored. Need reinstall the script. (done)
+- Changed way to get bundle status by using server to save bundle list. Won't make request to steamgifts for every games.
+- Added Bundled Date to Bundle tag, can be seen when mouse hovering to bundle tags.
+- Optimized Wishlist tags and it now appears outside giveaway page too.
+- Bundle, Wishlist tags cache time reduced to 6 hours. Trading Cards, Achievement, Mac, Linux, Early Access still 24 hours.
+- Changed how the script saves data. Now Trading Cards, Achievement, Mac, Linux, Early Access data saved as 1 data instead of 5 data per games. May reduce lags because of too many data stored. Need reinstall the script.
 - Changed how the script process game title when ExtSG installed. It now ignores [NEW] and [FREE] instead of remove them in case ExtSG gets another tags.
 
 2.12

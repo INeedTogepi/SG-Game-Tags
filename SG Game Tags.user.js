@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.1.3
+// @version      3.2
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -18,52 +18,46 @@
 // ==/UserScript==
 
 /* CSS */
-var myCSS;
-myCSS = '<style> \
-		.tags { \
-			color: #FFFFFF; \
-			text-decoration: none; \
-			border-radius: 4px; \
-			padding-top: 2px; \
-			padding-bottom: 2px; \
-			padding-left: 5px; \
-			padding-right: 5px; \
-			font-size: 8pt; \
-			margin-right: 3px; \
-			margin-bottom: 3px; \
-			margin-top: 3px; \
-			text-shadow: none; \
-			display: none; \
-		} \
-		.tags-card { background-color: #3AA435; } \
-		.tags-bundle { background-color: #E9202A; } \
-		.tags-achievement { background-color: #305AC9; } \
-		.tags-wishlist { background-color: #9335F1; } \
-		.tags-hidden { background-color: #A0522D; } \
-		.tags-linux { background-color: #E67300; } \
-		.tags-mac { background-color: #777777; } \
-		.tags-early { background-color: #9FA027; } \
-		.tags.tags-minimalist { \
-			margin-right: 0; \
-			margin-left: 5px; \
-		}\
-		.my__checkbox { \
-			cursor:pointer; \
-			padding:7px 0 \
-		} \
-		.my__checkbox i { \
-			margin-right:7px \
-		} \
-		.my__checkbox:not(:last-of-type) { \
-			border-bottom:1px dotted #d2d6e0 \
-		} \
-		.my__checkbox:not(:hover) .form__checkbox__hover,.my__checkbox.is-selected .form__checkbox__hover,.my__checkbox:not(.is-selected) .form__checkbox__selected,.my__checkbox:hover .form__checkbox__default,.my__checkbox.is-selected .form__checkbox__default { \
-			display:none \
-		} \
-	</style>';
+const default_bundle = "#E9202A";
+const default_card = "#3AA435";
+const default_achievement = "#305AC9";
+const default_wishlist = "#9335F1";
+const default_linux = "#E67300";
+const default_mac = "#777777";
+const default_early = "#9FA027";
+const default_hidden = "#A0522D";
 
-$("head").append(myCSS);
+var myCSS = '\
+	.tags { \
+		text-decoration: none; \
+		border-radius: 4px; \
+		padding: 2px 5px; \
+		font-size: 8pt; \
+		margin: 3px 3px 3px 0px; \
+		text-shadow: none; \
+		display: none; \
+	} \
+	.tags.tags-minimalist { \
+		margin-right: 0; \
+		margin-left: 5px; \
+	}\
+	.my__checkbox { cursor:pointer; padding:7px 0 } \
+	.my__checkbox i { margin-right:7px } \
+	.my__checkbox:not(:last-of-type) { border-bottom:1px dotted #d2d6e0 } \
+	.my__checkbox:not(:hover) .form__checkbox__hover,.my__checkbox.is-selected .form__checkbox__hover,.my__checkbox:not(.is-selected) .form__checkbox__selected,.my__checkbox:hover .form__checkbox__default,.my__checkbox.is-selected .form__checkbox__default { \
+		display:none \
+	} \
+';
+myCSS += '.tags-bundle { background-color: ' + GM_getValue("bundle-1", default_bundle) + '; color: ' + GM_getValue("bundle-2", "#FFFFFF") + '}';
+myCSS += '.tags-card { background-color: ' + GM_getValue("card-1", default_card) + '; color: ' + GM_getValue("card-2", "#FFFFFF") + '}';
+myCSS += '.tags-achievement { background-color: ' + GM_getValue("achievement-1", default_achievement) + '; color: ' + GM_getValue("achievement-2", "#FFFFFF") + '}';
+myCSS += '.tags-wishlist { background-color: ' + GM_getValue("wishlist-1", default_wishlist) + '; color: ' + GM_getValue("wishlist-2", "#FFFFFF") + '}';
+myCSS += '.tags-linux { background-color: ' + GM_getValue("linux-1", default_linux) + '; color: ' + GM_getValue("linux-2", "#FFFFFF") + '}';
+myCSS += '.tags-mac { background-color: ' + GM_getValue("mac-1", default_mac) + '; color: ' + GM_getValue("mac-2", "#FFFFFF") + '}';
+myCSS += '.tags-early { background-color: ' + GM_getValue("early-1", default_early) + '; color: ' + GM_getValue("early-2", "#FFFFFF") + '}';
+myCSS += '.tags-hidden { background-color: ' + GM_getValue("hidden-1", default_hidden) + '; color: ' + GM_getValue("hidden-2", "#FFFFFF") + '}';
 
+$("head").append('<style type="text/css">' + myCSS + '</style>');
 
 /* Constant Variables */
 const linkBundle = "https://www.steamgifts.com/bundle-games/search?q=";
@@ -133,9 +127,9 @@ var PackageData = GM_getValue("PackageData", "");
 var rgWishlist;
 var arrBundled;
 
-if(cbBundled && BundledCache < Date.now() - 6*60*60*1000) //6 hours
+if(cbBundled && BundledCache < Date.now() - 6*60*60*1000) //6 hours. Check if need to request bundle list from ruphine API
 	getBundleList();
-else if(cbWishlist && UserdataCache < Date.now() - 6*60*60*1000) //6 hours
+else if(cbWishlist && UserdataCache < Date.now() - 6*60*60*1000) //6 hours. Check if need to request steam user api
 	getUserdata();
 else
 	main();
@@ -831,18 +825,44 @@ function initTagColorSetting(no)
 			<div class="row"> \
 				<input type="text" class="colorpicker" id="bundle-1"/> \
 				<input type="text" class="colorpicker" id="bundle-2"/> \
-				<a id="tags" target="_blank" class="tags tags-bundle" style="display: inline-block;">Bundled</a> \
+				&nbsp;<a id="tags" target="_blank" class="tags tags-bundle" style="display: inline-block;">Bundled</a> \
 			</div> \
 			<div class="row"> \
 				<input type="text" class="colorpicker" id="card-1"/> \
 				<input type="text" class="colorpicker" id="card-2"/> \
-				<a id="tags" target="_blank" class="tags tags-card" style="display: inline-block;">Trading Card</a> \
+				&nbsp;<a id="tags" target="_blank" class="tags tags-card" style="display: inline-block;">Trading Card</a> \
 			</div> \
 			<div class="row"> \
 				<input type="text" class="colorpicker" id="achievement-1"/> \
 				<input type="text" class="colorpicker" id="achievement-2"/> \
-				<a id="tags" target="_blank" class="tags tags-achievement" style="display: inline-block;">Achievements</a> \
-			</div>';
+				&nbsp;<a id="tags" target="_blank" class="tags tags-achievement" style="display: inline-block;">Achievements</a> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="wishlist-1"/> \
+				<input type="text" class="colorpicker" id="wishlist-2"/> \
+				&nbsp;<a id="tags" target="_blank" class="tags tags-wishlist" style="display: inline-block;">Wishlist</a> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="linux-1"/> \
+				<input type="text" class="colorpicker" id="linux-2"/> \
+				&nbsp;<a id="tags" target="_blank" class="tags tags-linux" style="display: inline-block;">Linux</a> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="mac-1"/> \
+				<input type="text" class="colorpicker" id="mac-2"/> \
+				&nbsp;<a id="tags" target="_blank" class="tags tags-mac" style="display: inline-block;">Mac</a> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="early-1"/> \
+				<input type="text" class="colorpicker" id="early-2"/> \
+				&nbsp;<a id="tags" target="_blank" class="tags tags-early" style="display: inline-block;">Early Access</a> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="hidden-1"/> \
+				<input type="text" class="colorpicker" id="hidden-2"/> \
+				&nbsp;<a id="tags" target="_blank" class="tags tags-hidden" style="display: inline-block;">Hidden</a> \
+			</div> \
+		';
 
 	$(form__row).append(form__heading).append(form__row__indent).insertBefore(".js__submit-form");
 
@@ -851,21 +871,30 @@ function initTagColorSetting(no)
 	desc.innerHTML = "No need to press Save Changes button. It is automatically saved when colorpicker closed.";
 	$(desc).appendTo([form__row__indent]);
 
-	if(cbTagStyle == 2)
+	if(cbTagStyle == 2) // change tags if minimalist selected
 	{
 		$(".row a").each(function(index, element)
 		{
-			// TODO
-			$(element).text("A");
+			$(element).text($(element).text().substring(0,1));
 		});
 	}
 
-	initColorpicker("bundle-1", "#E9202A", "tags-bundle", "background-color");
-	initColorpicker("bundle-2", "#FFFFFF", "tags-bundle", "color");
-	initColorpicker("card-1", "#3AA435", "tags-card", "background-color");
-	initColorpicker("card-2", "#FFFFFF", "tags-card", "color");
-	initColorpicker("achievement-1", "#305AC9", "tags-achievement", "background-color");
-	initColorpicker("achievement-2", "#FFFFFF", "tags-achievement", "color");
+	initColorpicker("bundle-1", GM_getValue("bundle-1", default_bundle), "tags-bundle", "background-color");
+	initColorpicker("bundle-2", GM_getValue("bundle-2", "#FFFFFF"), "tags-bundle", "color");
+	initColorpicker("card-1", GM_getValue("card-1", default_card), "tags-card", "background-color");
+	initColorpicker("card-2", GM_getValue("card-2", "#FFFFFF"), "tags-card", "color");
+	initColorpicker("achievement-1", GM_getValue("achievement-1", default_achievement), "tags-achievement", "background-color");
+	initColorpicker("achievement-2", GM_getValue("achievement-2", "#FFFFFF"), "tags-achievement", "color");
+	initColorpicker("wishlist-1", GM_getValue("wishlist-1", default_wishlist), "tags-wishlist", "background-color");
+	initColorpicker("wishlist-2", GM_getValue("wishlist-2", "#FFFFFF"), "tags-wishlist", "color");
+	initColorpicker("linux-1", GM_getValue("linux-1", default_linux), "tags-linux", "background-color");
+	initColorpicker("linux-2", GM_getValue("linux-2", "#FFFFFF"), "tags-linux", "color");
+	initColorpicker("mac-1", GM_getValue("mac-1", default_mac), "tags-mac", "background-color");
+	initColorpicker("mac-2", GM_getValue("mac-2", "#FFFFFF"), "tags-mac", "color");
+	initColorpicker("early-1", GM_getValue("early-1", default_early), "tags-early", "background-color");
+	initColorpicker("early-2", GM_getValue("early-2", "#FFFFFF"), "tags-early", "color");
+	initColorpicker("hidden-1", GM_getValue("hidden-1", default_hidden), "tags-hidden", "background-color");
+	initColorpicker("hidden-2", GM_getValue("hidden-2", "#FFFFFF"), "tags-hidden", "color");
 }
 
 function createCheckBox(_class, _html, cbValue)
@@ -943,7 +972,7 @@ function changeCBColor()
 	$(".my__checkbox.is-selected").css("color", colorCBSelected);
 }
 
-function initColorpicker(id, color, tag, property)
+function initColorpicker(id, currentColor, tag, property)
 {
 	$("#"+id).spectrum({
 		showInput: true, // show color code and lets user input color code
@@ -951,14 +980,23 @@ function initColorpicker(id, color, tag, property)
 		showPalette: true,
 		showSelectionPalette: true,
 		preferredFormat: "hex", //display hex code
+		localStorageKey: "spectrum.sggametags",
 		palette: [
-			["3AA435", "E9202A", "305AC9", "9335F1", "A0522D", "E67300", "777777", "9FA027"]
+			[default_bundle, default_card, default_achievement, default_wishlist, default_linux, default_mac, default_early, default_hidden],
+			["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
+			["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
+			["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
+			["#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
+			["#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
+			["#c00","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
+			["#900","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
+			["#600","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
 		],
-		color:color,
+		color:currentColor,
 		move: function(color){ $("."+tag).css(property, color.toHexString()); },
 		change: function(color){ $("."+tag).css(property, color.toHexString()); },
 		hide: function(color){
-			console.log("save background " + color.toHexString());
+			GM_setValue(id, color.toHexString());
 		}
 	});
 }

@@ -1015,7 +1015,7 @@ function initColorpicker(id, currentColor, tag, property)
 function AddShortcutToSettingPage()
 {
 	var shortcut = '\
-		<a class="nav__row" href="/account/settings/giveaways"> \
+		<a class="nav__row sggt_shortcut" href="/account/settings/giveaways"> \
 			<i class="icon-yellow fa fa-fw fa-tag"></i> \
 			<div class="nav__row__summary"> \
 				<p class="nav__row__summary__name">SG Game Tags Setting</p> \

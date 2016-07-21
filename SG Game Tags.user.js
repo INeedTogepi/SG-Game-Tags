@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         SG Game Tags
-// @namespace    https://steamcommunity.com/id/Ruphine/
+// @namespace    https://github.com/Propheus/SG-Game-Tags
 // @version      3.2
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
@@ -211,56 +211,67 @@ function main()
 	// https://www.steamgifts.com/account/settings/giveaways/filters
 	else if(/www.steamgifts.com\/(sales|account\/steam\/(games|wishlist)|giveaways\/(created|entered|won|wishlist)|account\/settings\/giveaways\/filters|group\/\w+\/\w+\/wishlist)/.test(THIS_URL))
 		ProcessGameListPage();
+
+	AddShortcutToSettingPage();
 }
 
 function ProcessFeaturedGiveaway(URL)
 {
-	var Name = $(".featured__heading__medium").text().substring(0,45); //letter after 45th converted to ...
-	var Target = $(".featured__heading");
+	if(cbBundled || cbCards || cbAchievement || cbHidden || cbWishlist || cbLinux || cbMac || cbEarly) // check if at least one tag enabled
+	{
+		var Name = $(".featured__heading__medium").text().substring(0,45); //letter after 45th converted to ...
+		var Target = $(".featured__heading");
 
-	ProcessTags(Target, URL, Name);
+		ProcessTags(Target, URL, Name);
+	}
 }
 
 function ProcessGiveawayListPage(scope) // giveaways list with creator name
 {
-	$(scope).each(function(index, element)
+	if(cbBundled || cbCards || cbAchievement || cbHidden || cbWishlist || cbLinux || cbMac || cbEarly) // check if at least one tag enabled
 	{
-		var URL = $(element).find("a.giveaway__icon").attr("href");
-		if(URL != null)
+		$(scope).each(function(index, element)
 		{
-			var Name = $(element).find(".giveaway__heading__name").contents().filter(
-				function() //return text without [NEW] and [FREE]
-				{
-					return this.nodeType === 3; //Node.TEXT_NODE
-				}
-			).slice(-1)[0].textContent.substring(0,40); //letter after 40th converted to ...
-			var Target = $(element).find(".giveaway__heading");
-			ProcessTags(Target, URL, Name);
-		}
-	});
+			var URL = $(element).find("a.giveaway__icon").attr("href");
+			if(URL != null)
+			{
+				var Name = $(element).find(".giveaway__heading__name").contents().filter(
+					function() //return text without [NEW] and [FREE]
+					{
+						return this.nodeType === 3; //Node.TEXT_NODE
+					}
+				).slice(-1)[0].textContent.substring(0,40); //letter after 40th converted to ...
+				var Target = $(element).find(".giveaway__heading");
+				ProcessTags(Target, URL, Name);
+			}
+		});
+	}
 }
 
 function ProcessGameListPage() // giveaways / games list
 {
-	$(".table__row-inner-wrap").each(function(index, element)
+	if(cbBundled || cbCards || cbAchievement || cbHidden || cbWishlist || cbLinux || cbMac || cbEarly) // check if at least one tag enabled
 	{
-		var URL;
-		if(/www.steamgifts.com\/account\/settings\/giveaways\/filters/.test(THIS_URL))
-			URL = $(element).find("a.table__column__secondary-link").text();
-		else
-			URL = $($(element).find(".global__image-inner-wrap")[0]).css('background-image');
-
-		if(URL != null)
+		$(".table__row-inner-wrap").each(function(index, element)
 		{
-			URL = URL.replace('url(', '').replace(')', '');
-			var Name = $(element).find(".table__column__heading").text().substring(0,30);
-			var Target = $(element).find(".table__column--width-fill > :first-child");
+			var URL;
+			if(/www.steamgifts.com\/account\/settings\/giveaways\/filters/.test(THIS_URL))
+				URL = $(element).find("a.table__column__secondary-link").text();
+			else
+				URL = $($(element).find(".global__image-inner-wrap")[0]).css('background-image');
 
-			if(/www.steamgifts.com\/sales/.test(THIS_URL)) Target.css("display", "block"); //because sales pages don't use <p> thus tags will appears in line with title
+			if(URL != null)
+			{
+				URL = URL.replace('url(', '').replace(')', '');
+				var Name = $(element).find(".table__column__heading").text().substring(0,30);
+				var Target = $(element).find(".table__column--width-fill > :first-child");
 
-			ProcessTags(Target, URL, Name);
-		}
-	});
+				if(/www.steamgifts.com\/sales/.test(THIS_URL)) Target.css("display", "block"); //because sales pages don't use <p> thus tags will appears in line with title
+
+				ProcessTags(Target, URL, Name);
+			}
+		});
+	}
 }
 
 function ProcessTags(Target, URL, Name)
@@ -999,4 +1010,19 @@ function initColorpicker(id, currentColor, tag, property)
 			GM_setValue(id, color.toHexString());
 		}
 	});
+}
+
+function AddShortcutToSettingPage()
+{
+	var shortcut = '\
+		<a class="nav__row" href="/account/settings/giveaways"> \
+			<i class="icon-yellow fa fa-fw fa-tag"></i> \
+			<div class="nav__row__summary"> \
+				<p class="nav__row__summary__name">SG Game Tags Setting</p> \
+				<p class="nav__row__summary__description">Open SG Game Tags setting page</span>.</p> \
+			</div> \
+		</a> \
+	';
+	var dropdown = $(".nav__right-container .nav__absolute-dropdown .nav__row");
+	$(dropdown[2]).before(shortcut); // just before logout button
 }

@@ -334,7 +334,6 @@ function ProcessTags(Target, URL, Name)
 function createTag(_class, title, text, href, divTarget)
 {
 	var tag = document.createElement("a");
-	tag.setAttribute("id", "tags");
 	tag.setAttribute("target", "_blank");
 	tag.setAttribute("class", _class);
 	tag.setAttribute("title", title);
@@ -635,6 +634,8 @@ function isPackage(link)
 	return pattern.test(link);
 }
 
+
+// ========================================== create new giveaway page ========================================================
 function NewGiveawayDivUpdated(event)
 {
 	if(event.type == "DOMNodeInserted") //show bundle tag for shown game
@@ -679,6 +680,7 @@ function NewGiveawayDivUpdated(event)
 	}
 }
 
+// ========================================== setting page ========================================================
 function initSetting()
 {
 	var no = $(".form__heading").length + 1;
@@ -803,111 +805,6 @@ function initTagPositionSetting(no)
 	$(desc).appendTo([form__row__indent]);
 }
 
-function initTagColorSetting(no)
-{
-	var require = ' \
-		<style type="text/css"> \
-			.row div { display: inline-block; } \
-		</style> \
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css" /> \
-	';
-
-	$("head").append(require);
-
-	var form__row = document.createElement("div");
-	form__row.setAttribute("class", "form__row");
-
-		var form__heading = document.createElement("div");
-		form__heading.setAttribute("class", "form__heading");
-
-			var form__heading__number = document.createElement("div");
-			form__heading__number.setAttribute("class", "form__heading__number");
-			form__heading__number.innerHTML = no + ".";
-
-			var form__heading__text = document.createElement("div");
-			form__heading__text.setAttribute("class", "form__heading__text");
-			form__heading__text.innerHTML = "[SG Game Tags] Customized tags color";
-
-		$(form__heading).append(form__heading__number).append(form__heading__text);
-
-		var form__row__indent = document.createElement("div");
-		form__row__indent.setAttribute("class", "form__row__indent");
-		form__row__indent.innerHTML = ' \
-			<div class="row"> \
-				<input type="text" class="colorpicker" id="bundle-1"/> \
-				<input type="text" class="colorpicker" id="bundle-2"/> \
-				&nbsp;<a id="tags" target="_blank" class="tags tags-bundle" style="display: inline-block;">Bundled</a> \
-			</div> \
-			<div class="row"> \
-				<input type="text" class="colorpicker" id="card-1"/> \
-				<input type="text" class="colorpicker" id="card-2"/> \
-				&nbsp;<a id="tags" target="_blank" class="tags tags-card" style="display: inline-block;">Trading Card</a> \
-			</div> \
-			<div class="row"> \
-				<input type="text" class="colorpicker" id="achievement-1"/> \
-				<input type="text" class="colorpicker" id="achievement-2"/> \
-				&nbsp;<a id="tags" target="_blank" class="tags tags-achievement" style="display: inline-block;">Achievements</a> \
-			</div> \
-			<div class="row"> \
-				<input type="text" class="colorpicker" id="wishlist-1"/> \
-				<input type="text" class="colorpicker" id="wishlist-2"/> \
-				&nbsp;<a id="tags" target="_blank" class="tags tags-wishlist" style="display: inline-block;">Wishlist</a> \
-			</div> \
-			<div class="row"> \
-				<input type="text" class="colorpicker" id="linux-1"/> \
-				<input type="text" class="colorpicker" id="linux-2"/> \
-				&nbsp;<a id="tags" target="_blank" class="tags tags-linux" style="display: inline-block;">Linux</a> \
-			</div> \
-			<div class="row"> \
-				<input type="text" class="colorpicker" id="mac-1"/> \
-				<input type="text" class="colorpicker" id="mac-2"/> \
-				&nbsp;<a id="tags" target="_blank" class="tags tags-mac" style="display: inline-block;">Mac</a> \
-			</div> \
-			<div class="row"> \
-				<input type="text" class="colorpicker" id="early-1"/> \
-				<input type="text" class="colorpicker" id="early-2"/> \
-				&nbsp;<a id="tags" target="_blank" class="tags tags-early" style="display: inline-block;">Early Access</a> \
-			</div> \
-			<div class="row"> \
-				<input type="text" class="colorpicker" id="hidden-1"/> \
-				<input type="text" class="colorpicker" id="hidden-2"/> \
-				&nbsp;<a id="tags" target="_blank" class="tags tags-hidden" style="display: inline-block;">Hidden</a> \
-			</div> \
-		';
-
-	$(form__row).append(form__heading).append(form__row__indent).insertBefore(".js__submit-form");
-
-	var desc = document.createElement("div");
-	desc.setAttribute("class", "form__input-description");
-	desc.innerHTML = "No need to press Save Changes button. It is automatically saved when colorpicker closed.";
-	$(desc).appendTo([form__row__indent]);
-
-	if(cbTagStyle == 2) // change tags if minimalist selected
-	{
-		$(".row a").each(function(index, element)
-		{
-			$(element).text($(element).text().substring(0,1));
-		});
-	}
-
-	initColorpicker("bundle-1", GM_getValue("bundle-1", default_bundle), "tags-bundle", "background-color");
-	initColorpicker("bundle-2", GM_getValue("bundle-2", "#FFFFFF"), "tags-bundle", "color");
-	initColorpicker("card-1", GM_getValue("card-1", default_card), "tags-card", "background-color");
-	initColorpicker("card-2", GM_getValue("card-2", "#FFFFFF"), "tags-card", "color");
-	initColorpicker("achievement-1", GM_getValue("achievement-1", default_achievement), "tags-achievement", "background-color");
-	initColorpicker("achievement-2", GM_getValue("achievement-2", "#FFFFFF"), "tags-achievement", "color");
-	initColorpicker("wishlist-1", GM_getValue("wishlist-1", default_wishlist), "tags-wishlist", "background-color");
-	initColorpicker("wishlist-2", GM_getValue("wishlist-2", "#FFFFFF"), "tags-wishlist", "color");
-	initColorpicker("linux-1", GM_getValue("linux-1", default_linux), "tags-linux", "background-color");
-	initColorpicker("linux-2", GM_getValue("linux-2", "#FFFFFF"), "tags-linux", "color");
-	initColorpicker("mac-1", GM_getValue("mac-1", default_mac), "tags-mac", "background-color");
-	initColorpicker("mac-2", GM_getValue("mac-2", "#FFFFFF"), "tags-mac", "color");
-	initColorpicker("early-1", GM_getValue("early-1", default_early), "tags-early", "background-color");
-	initColorpicker("early-2", GM_getValue("early-2", "#FFFFFF"), "tags-early", "color");
-	initColorpicker("hidden-1", GM_getValue("hidden-1", default_hidden), "tags-hidden", "background-color");
-	initColorpicker("hidden-2", GM_getValue("hidden-2", "#FFFFFF"), "tags-hidden", "color");
-}
-
 function createCheckBox(_class, _html, cbValue)
 {
 	var cb = document.createElement("div");
@@ -983,6 +880,130 @@ function changeCBColor()
 	$(".my__checkbox.is-selected").css("color", colorCBSelected);
 }
 
+function initTagColorSetting(no)
+{
+	var require = ' \
+		<style type="text/css"> \
+			.row div { display: inline-block; } \
+			.preview-tags { width: 80px; margin-left: 10px; } \
+			.row .markdown {margin-left: 10px; cursor: pointer; }\
+		</style> \
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css" /> \
+	';
+
+	$("head").append(require);
+
+	var form__row = document.createElement("div");
+	form__row.setAttribute("class", "form__row");
+
+		var form__heading = document.createElement("div");
+		form__heading.setAttribute("class", "form__heading");
+
+			var form__heading__number = document.createElement("div");
+			form__heading__number.setAttribute("class", "form__heading__number");
+			form__heading__number.innerHTML = no + ".";
+
+			var form__heading__text = document.createElement("div");
+			form__heading__text.setAttribute("class", "form__heading__text");
+			form__heading__text.innerHTML = "[SG Game Tags] Customized tags color";
+
+		$(form__heading).append(form__heading__number).append(form__heading__text);
+
+		var form__row__indent = document.createElement("div");
+		form__row__indent.setAttribute("class", "form__row__indent");
+		form__row__indent.innerHTML = ' \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="bundle-1"/> \
+				<input type="text" class="colorpicker" id="bundle-2"/> \
+				<div class="markdown"><a class="default_bundle">Default</a></div> \
+				<div class="preview-tags"><a class="tags tags-bundle" style="display: inline-block;">Bundled</a></div> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="card-1"/> \
+				<input type="text" class="colorpicker" id="card-2"/> \
+				<div class="markdown"><a class="default_card">Default</a></div> \
+				<div class="preview-tags"><a class="tags tags-card" style="display: inline-block;">Trading Card</a></div> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="achievement-1"/> \
+				<input type="text" class="colorpicker" id="achievement-2"/> \
+				<div class="markdown"><a class="default_achievement">Default</a></div> \
+				<div class="preview-tags"><a class="tags tags-achievement" style="display: inline-block;">Achievements</a></div> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="wishlist-1"/> \
+				<input type="text" class="colorpicker" id="wishlist-2"/> \
+				<div class="markdown"><a class="default_wishlist">Default</a></div> \
+				<div class="preview-tags"><a class="tags tags-wishlist" style="display: inline-block;">Wishlist</a></div> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="linux-1"/> \
+				<input type="text" class="colorpicker" id="linux-2"/> \
+				<div class="markdown"><a class="default_linux">Default</a></div> \
+				<div class="preview-tags"><a class="tags tags-linux" style="display: inline-block;">Linux</a></div> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="mac-1"/> \
+				<input type="text" class="colorpicker" id="mac-2"/> \
+				<div class="markdown"><a class="default_mac">Default</a></div> \
+				<div class="preview-tags"><a class="tags tags-mac" style="display: inline-block;">Mac</a></div> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="early-1"/> \
+				<input type="text" class="colorpicker" id="early-2"/> \
+				<div class="markdown"><a class="default_early">Default</a></div> \
+				<div class="preview-tags"><a class="tags tags-early" style="display: inline-block;">Early Access</a></div> \
+			</div> \
+			<div class="row"> \
+				<input type="text" class="colorpicker" id="hidden-1"/> \
+				<input type="text" class="colorpicker" id="hidden-2"/> \
+				<div class="markdown"><a class="default_hidden">Default</a></div> \
+				<div class="preview-tags"><a class="tags tags-hidden" style="display: inline-block;">Hidden</a></div> \
+			</div> \
+		';
+
+	$(form__row).append(form__heading).append(form__row__indent).insertBefore(".js__submit-form");
+
+	var desc = document.createElement("div");
+	desc.setAttribute("class", "form__input-description");
+	desc.innerHTML = "No need to press Save Changes button. It is automatically saved when colorpicker closed.";
+	$(desc).appendTo([form__row__indent]);
+
+	if(cbTagStyle == 2) // change tags if minimalist selected
+	{
+		$(".row .tags").each(function(index, element)
+		{
+			$(element).text($(element).text().substring(0,1));
+		});
+	}
+
+	initColorpicker("bundle-1", GM_getValue("bundle-1", default_bundle), "tags-bundle", "background-color");
+	initColorpicker("bundle-2", GM_getValue("bundle-2", "#FFFFFF"), "tags-bundle", "color");
+	initColorpicker("card-1", GM_getValue("card-1", default_card), "tags-card", "background-color");
+	initColorpicker("card-2", GM_getValue("card-2", "#FFFFFF"), "tags-card", "color");
+	initColorpicker("achievement-1", GM_getValue("achievement-1", default_achievement), "tags-achievement", "background-color");
+	initColorpicker("achievement-2", GM_getValue("achievement-2", "#FFFFFF"), "tags-achievement", "color");
+	initColorpicker("wishlist-1", GM_getValue("wishlist-1", default_wishlist), "tags-wishlist", "background-color");
+	initColorpicker("wishlist-2", GM_getValue("wishlist-2", "#FFFFFF"), "tags-wishlist", "color");
+	initColorpicker("linux-1", GM_getValue("linux-1", default_linux), "tags-linux", "background-color");
+	initColorpicker("linux-2", GM_getValue("linux-2", "#FFFFFF"), "tags-linux", "color");
+	initColorpicker("mac-1", GM_getValue("mac-1", default_mac), "tags-mac", "background-color");
+	initColorpicker("mac-2", GM_getValue("mac-2", "#FFFFFF"), "tags-mac", "color");
+	initColorpicker("early-1", GM_getValue("early-1", default_early), "tags-early", "background-color");
+	initColorpicker("early-2", GM_getValue("early-2", "#FFFFFF"), "tags-early", "color");
+	initColorpicker("hidden-1", GM_getValue("hidden-1", default_hidden), "tags-hidden", "background-color");
+	initColorpicker("hidden-2", GM_getValue("hidden-2", "#FFFFFF"), "tags-hidden", "color");
+
+	$(".default_bundle").click(function(){clickDefaultColor("bundle", default_bundle);});
+	$(".default_card").click(function(){clickDefaultColor("card", default_card);});
+	$(".default_achievement").click(function(){clickDefaultColor("achievement", default_achievement);});
+	$(".default_wishlist").click(function(){clickDefaultColor("wishlist", default_wishlist);});
+	$(".default_linux").click(function(){clickDefaultColor("linux", default_linux);});
+	$(".default_mac").click(function(){clickDefaultColor("mac", default_mac);});
+	$(".default_early").click(function(){clickDefaultColor("early", default_early);});
+	$(".default_hidden").click(function(){clickDefaultColor("hidden", default_hidden);});
+}
+
 function initColorpicker(id, currentColor, tag, property)
 {
 	$("#"+id).spectrum({
@@ -992,6 +1013,7 @@ function initColorpicker(id, currentColor, tag, property)
 		showSelectionPalette: true,
 		preferredFormat: "hex", //display hex code
 		localStorageKey: "spectrum.sggametags",
+		maxSelectionSize: 8,
 		palette: [
 			[default_bundle, default_card, default_achievement, default_wishlist, default_linux, default_mac, default_early, default_hidden],
 			["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
@@ -1012,6 +1034,17 @@ function initColorpicker(id, currentColor, tag, property)
 	});
 }
 
+function clickDefaultColor(name, defaultvalue)
+{
+	console.log("clicked");
+	GM_setValue(name+"-1", defaultvalue);
+	GM_setValue(name+"-2", "#FFFFFF");
+	$(".tags-"+name).css("background-color", defaultvalue).css("color", "#FFFFFF");
+	$("#"+name+"-1").spectrum("set", defaultvalue);
+	$("#"+name+"-2").spectrum("set", "#FFFFFF");
+}
+
+// ==================================================================================================
 function AddShortcutToSettingPage()
 {
 	var shortcut = '\

@@ -1,4 +1,3 @@
-- New setting to custom tag background and text color. I'm considering to make a separate page for SG Game Tags setting.
 - New tags (Owned and Not Interested). Requires login to steam with current browser. Cache time 6 hours.
 - New button to refresh Bundle, Wishlist, Owned, Not Interested cache.
 - New tags (other steam categories, other steam user defined tags). Only by hovering the mouse.

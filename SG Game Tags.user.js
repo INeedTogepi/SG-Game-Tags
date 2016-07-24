@@ -104,7 +104,7 @@ const TitleEarly = "This game is in early access state";
 const TextEarly = "Early Access";
 
 const THIS_URL = window.location.href;
-const TIMEOUT = 1000;
+const TIMEOUT = 0;
 
 var cbCards = GM_getValue("cbCards", true);
 var cbAchievement = GM_getValue("cbAchievement", true);

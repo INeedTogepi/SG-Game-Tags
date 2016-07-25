@@ -364,10 +364,10 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 	else
 	{
 		var data = GameData[appID];
-		if(cbCards       && data.cards      ) displayElems(tagCard);
+		if(cbCards && data.cards) displayElems(tagCard);
 		if(cbAchievement && data.achievement) displayElems(tagAchievement);
-		if(cbMac         && data.mac        ) displayElems(tagMac);
-		if(cbLinux       && data.linux      ) displayElems(tagLinux);
+		if(cbMac && data.mac) displayElems(tagMac);
+		if(cbLinux && data.linux) displayElems(tagLinux);
 
 		if(data.last_checked < (Date.now() - (24 * 60 * 60 * 1000))) // 24 hours have passed since last checked
 		{
@@ -396,7 +396,11 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 						{
 							if(cbCards) displayElems(tagCard);
 							GameData[appID].cards = true;
-							if(packID != 0) PackageData[packID].cards = true;
+							if(packID != 0)
+							{
+								tagCard.setAttribute("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
+								PackageData[packID].cards = true;
+							}
 						}
 
 						var catAchievement = $.grep(categories, function(e){ return e.id == "22"; });
@@ -404,7 +408,11 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 						{
 							if(cbAchievement) displayElems(tagAchievement);
 							GameData[appID].achievement = true;
-							if(packID != 0) PackageData[packID].achievement = true;
+							if(packID != 0)
+							{
+								tagAchievement.setAttribute("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
+								PackageData[packID].achievement = true;
+							}
 						}
 					}
 
@@ -547,22 +555,30 @@ function getWishlistStatus(appID, elems)
 		displayElems(elems);
 }
 
-function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly)
+function getSteamCategoriesFromPackage(packID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly)
 {
 	var needRequest = false;
-	if(PackageData[appID] == null)
+	if(PackageData[packID] == null)
 	{
 		var template = {"cards": false, "achievement": false, "mac": false, "linux": false, "early_access": false, "last_checked": 0};
-		PackageData[appID] = template;
+		PackageData[packID] = template;
 		needRequest = true;
 	}
 	else
 	{
-		var data = PackageData[appID];
-		if(cbCards       && data.cards      ) displayElems(tagCard);
-		if(cbAchievement && data.achievement) displayElems(tagAchievement);
-		if(cbMac         && data.mac        ) displayElems(tagMac);
-		if(cbLinux       && data.linux      ) displayElems(tagLinux);
+		var data = PackageData[packID];
+		if(cbCards && data.cards)
+		{
+			displayElems(tagCard);
+			tagCard.setAttribute("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
+		}
+		if(cbAchievement && data.achievement)
+		{
+			displayElems(tagAchievement);
+			tagAchievement.setAttribute("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
+		}
+		if(cbMac && data.mac) displayElems(tagMac);
+		if(cbLinux && data.linux) displayElems(tagLinux);
 
 		if(data.last_checked < (Date.now() - (24 * 60 * 60 * 1000))) // 24 hours have passed since last checked
 		{
@@ -576,30 +592,30 @@ function getSteamCategoriesFromPackage(appID, tagCard, tagAchievement, tagLinux,
 		GM_xmlhttpRequest({
 			method: "GET",
 			timeout: 10000,
-			url: linkPackAPI+appID,
+			url: linkPackAPI+packID,
 			onload: function(data)
 			{
-				var IDs = JSON.parse(data.responseText)[appID].data;
+				var IDs = JSON.parse(data.responseText)[packID].data;
 				if(IDs == null)
 				{
-					PackageData[appID].cards = false;
-					PackageData[appID].achievement = false;
-					PackageData[appID].mac = false;
-					PackageData[appID].linux = false;
-					PackageData[appID].early_access = false;
+					PackageData[packID].cards = false;
+					PackageData[packID].achievement = false;
+					PackageData[packID].mac = false;
+					PackageData[packID].linux = false;
+					PackageData[packID].early_access = false;
 				}
 				else
 				{
 					IDs = IDs.apps;
 					$.each(IDs, function(index)
 					{
-						getSteamCategories(IDs[index].id, tagCard, tagAchievement, tagLinux, tagMac, tagEarly, appID);
+						getSteamCategories(IDs[index].id, tagCard, tagAchievement, tagLinux, tagMac, tagEarly, packID);
 					});
 				}
 			},
 			ontimeout: function(data)
 			{
-				console.log("[SG Game Tags] Request " + linkPackAPI+appID + " Timeout");
+				console.log("[SG Game Tags] Request " + linkPackAPI+packID + " Timeout");
 			}
 		});
 	}

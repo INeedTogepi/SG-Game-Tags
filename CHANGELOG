@@ -2,6 +2,7 @@
 - Added feature to customized tags color
 - Added shortcut to giveaway setting (SG Game Tags setting is there) in navbar right dropdown.
 - Added new tags (Owned and Ignored)
+- Added link to achievement and trading card page for packages.
 
 3.1
 - Changed way to get bundle status by using server to save bundle list. Won't make request to steamgifts for every games.

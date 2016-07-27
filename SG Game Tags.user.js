@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         SG Game Tags
-// @namespace    https://github.com/Propheus/SG-Game-Tags
+// @namespace    https://steamcommunity.com/id/Ruphine/
 // @version      3.2
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
@@ -36,6 +36,7 @@ var myCSS = '\
 		margin: 3px 3px 3px 0px; \
 		text-shadow: none; \
 		display: none; \
+		white-space: nowrap; \
 	} \
 	.tags.tags-minimalist { \
 		margin-right: 0; \
@@ -66,7 +67,7 @@ const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievemen
 const linkHidden = "https://www.steamgifts.com/account/settings/giveaways/filters/search?q=";
 const linkWishlist = "https://www.steamgifts.com/account/steam/wishlist/search?q=";
 
-const linkGameAPI = "http://store.steampowered.com/api/appdetails?filters=categories,platforms,genres&appids=";
+const linkGameAPI = "http://store.steampowered.com/api/appdetails?appids=";//filters=categories,platforms,genres&
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?packageids=";
 const linkBundleAPI = "http://ruphine.esy.es/steamgifts/GetBundleStatus.php"; //?AppID=325470
 const linkUserAPI = "http://store.steampowered.com/dynamicstore/userdata/";
@@ -152,7 +153,7 @@ function main()
 		console.log("[SG Game Tags] Invalid json format for Wishlist");
 		UserdataAPI = ""; GM_setValue("UserdataAPI", "");
 		UserdataCache = 0; GM_setValue("UserdataCache", 0);
-	}	
+	}
 
 	if(GameData == "") PrepareJSON();
 	else
@@ -233,7 +234,7 @@ function ProcessGiveawayListPage(scope) // giveaways list with creator name
 		$(scope).each(function(index, element)
 		{
 			var URL = $(element).find("a.giveaway__icon").attr("href");
-			if(URL != null)
+			if(URL != undefined)
 			{
 				var Name = $(element).find(".giveaway__heading__name").contents().filter(
 					function() //return text without [NEW] and [FREE]
@@ -260,7 +261,7 @@ function ProcessGameListPage() // giveaways / games list
 			else
 				URL = $($(element).find(".global__image-inner-wrap")[0]).css('background-image');
 
-			if(URL != null)
+			if(URL != undefined)
 			{
 				URL = URL.replace('url(', '').replace(')', '');
 				var Name = $(element).find(".table__column__heading").text().substring(0,30);
@@ -352,20 +353,30 @@ function displayElems(elems)
 	$(elems).css("display", "inline-block");
 }
 
-function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly, packID = 0)
+function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly, packID = "0")
 {
 	var needRequest = false;
-	if(GameData[appID] == null)
+	if(GameData[appID] == undefined || GameData[appID].game == undefined)
 	{
-		var template = {"cards": false, "achievement": false, "mac": false, "linux": false, "early_access": false, "last_checked": 0};
+		var template = {"cards": false, "achievement": false, "mac": false, "linux": false, "early_access": false, "last_checked": 0, "game": appID+""};
 		GameData[appID] = template;
 		needRequest = true;
 	}
 	else
 	{
 		var data = GameData[appID];
-		if(cbCards && data.cards) displayElems(tagCard);
-		if(cbAchievement && data.achievement) displayElems(tagAchievement);
+		if(cbCards && data.cards)
+		{
+			displayElems(tagCard);
+			if(GameData[appID].game != "0")
+				tagCard.setAttribute("href", linkCard+GameData[appID].game);
+		}
+		if(cbAchievement && data.achievement)
+		{
+			displayElems(tagAchievement);
+			if(GameData[appID].game != "0")
+				tagAchievement.setAttribute("href", linkAchievement+GameData[appID].game+"/achievements/");
+		}
 		if(cbMac && data.mac) displayElems(tagMac);
 		if(cbLinux && data.linux) displayElems(tagLinux);
 
@@ -378,28 +389,47 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 	}
 	if(needRequest)
 	{
+		var link = linkGameAPI+appID;
+		if(GameData[appID].last_checked === 0) link += "&filters=categories,platforms,genres";
+		// console.log("[SG Game Tags] requesting " + linkGameAPI+appID);
+
 		GM_xmlhttpRequest({
 			method: "GET",
 			timeout: 10000,
-			url: linkGameAPI+appID,
+			url: link,
 			onload: function(data)
 			{
 				var obj = JSON.parse(data.responseText)[appID].data;
-				if(obj != null) // null = doesn't have store page or doesn't exist
+				if(obj != undefined) // undefined = doesn't have store page or doesn't exist
 				// get steam apps categories : achievement, trading cards, etc
 				{
+					if(data.last_checked === 0)
+					{
+						if (obj.type != "game")
+						{
+							GameData[appID].game = obj.fullgame.appid;
+							tagCard.setAttribute("href", linkCard+obj.fullgame.appid);
+							tagAchievement.setAttribute("href", linkAchievement+obj.fullgame.appid+"/achievements/");
+						}
+						else if(packID != "0" && PackageData[packID].games.indexOf(appID) == -1)
+							PackageData[packID].games.push(appID);
+					}
+
 					var categories = obj.categories;
-					if(categories != null)
+					if(categories != undefined)
 					{
 						var catCards = $.grep(categories, function(e){ return e.id == "29"; });
 						if(catCards.length > 0)
 						{
 							if(cbCards) displayElems(tagCard);
 							GameData[appID].cards = true;
-							if(packID != 0)
+							if(packID != "0")
 							{
-								tagCard.setAttribute("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
 								PackageData[packID].cards = true;
+								if(PackageData[packID].games.length > 1)
+									tagCard.setAttribute("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
+								else
+									tagCard.setAttribute("href", linkCard+PackageData[packID].games[0]);
 							}
 						}
 
@@ -408,10 +438,13 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 						{
 							if(cbAchievement) displayElems(tagAchievement);
 							GameData[appID].achievement = true;
-							if(packID != 0)
+							if(packID != "0")
 							{
-								tagAchievement.setAttribute("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
 								PackageData[packID].achievement = true;
+								if(PackageData[packID].games.length > 1)
+									tagAchievement.setAttribute("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
+								else
+									tagAchievement.setAttribute("href", linkAchievement+PackageData[packID].games[0]+"/achievements/");
 							}
 						}
 					}
@@ -422,34 +455,36 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 					{
 						if(cbLinux) displayElems(tagLinux);
 						GameData[appID].linux = true;
-						if(packID != 0) PackageData[packID].linux = true;
+						if(packID != "0") PackageData[packID].linux = true;
 					}
 					if(platforms.mac)
 					{
 						if(cbMac) displayElems(tagMac);
 						GameData[appID].mac = true;
-						if(packID != 0) PackageData[packID].mac = true;
+						if(packID != "0") PackageData[packID].mac = true;
 					}
 
 					// get steam apps genres
-					var genres = obj.genres;
-					var genEarly = $.grep(genres, function(e){ return e.id == "70"; });
-					if(genEarly.length > 0)
+					if(obj.genres != undefined)
 					{
-						if(cbEarly) displayElems(tagEarly);
-						GameData[appID].early_access = true;
-						if(packID != 0) PackageData[packID].early_access = true;
-					}
-					else
-					{
-						GameData[appID].early_access = false;
-						if(packID != 0) PackageData[packID].early_access = false;
+						var genEarly = $.grep(obj.genres, function(e){ return e.id == "70"; });
+						if(genEarly.length > 0)
+						{
+							if(cbEarly) displayElems(tagEarly);
+							GameData[appID].early_access = true;
+							if(packID != "0") PackageData[packID].early_access = true;
+						}
+						else
+						{
+							GameData[appID].early_access = false;
+							if(packID != "0") PackageData[packID].early_access = false;
+						}
 					}
 				}
 				GameData[appID].last_checked = Date.now();
 				GM_setValue("GameData", JSON.stringify(GameData));
 
-				if(packID != 0)
+				if(packID != "0")
 				{
 					PackageData[packID].last_checked = Date.now();
 					GM_setValue("PackageData", JSON.stringify(PackageData));
@@ -457,7 +492,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 			},
 			ontimeout: function(data)
 			{
-				console.log("[SG Game Tags] Request " + linkStore+appID + " Timeout");
+				console.log("[SG Game Tags] Request " + linkGameAPI+appID + " Timeout");
 			}
 		});
 	}
@@ -475,6 +510,7 @@ function getBundleStatus(appID, type, tag)
 
 function getBundleList()
 {
+	// console.log("[SG Game Tags] requesting " + linkBundleAPI);
 	GM_xmlhttpRequest({
 		method: "GET",
 		timeout: 10000,
@@ -504,6 +540,7 @@ function getBundleList()
 
 function getUserdata()
 {
+	// console.log("[SG Game Tags] requesting " + linkUserAPI);
 	GM_xmlhttpRequest({
 		method: "GET",
 		timeout: 10000,
@@ -530,6 +567,7 @@ function getHiddenStatus(appID, appName, elems)
 {
 	if(cbHidden)
 	{
+		// console.log("[SG Game Tags] requesting " + linkHidden+appName);
 		$.get(linkHidden+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
@@ -558,9 +596,9 @@ function getWishlistStatus(appID, elems)
 function getSteamCategoriesFromPackage(packID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly)
 {
 	var needRequest = false;
-	if(PackageData[packID] == null)
+	if(PackageData[packID] == undefined || PackageData[packID].games == undefined)
 	{
-		var template = {"cards": false, "achievement": false, "mac": false, "linux": false, "early_access": false, "last_checked": 0};
+		var template = {"cards": false, "achievement": false, "mac": false, "linux": false, "early_access": false, "last_checked": 0, "games":[]};
 		PackageData[packID] = template;
 		needRequest = true;
 	}
@@ -570,25 +608,38 @@ function getSteamCategoriesFromPackage(packID, tagCard, tagAchievement, tagLinux
 		if(cbCards && data.cards)
 		{
 			displayElems(tagCard);
-			tagCard.setAttribute("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
+			if(data.games.length > 1)
+			{
+				tagCard.setAttribute("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
+				tagCard.setAttribute("title", "There is " + data.games.length + " games in this package, and at least one of them have trading cards");
+			}
+			else
+				tagCard.setAttribute("href", linkCard+data.games[0]);
 		}
 		if(cbAchievement && data.achievement)
 		{
 			displayElems(tagAchievement);
-			tagAchievement.setAttribute("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
+			if(data.games.length > 1)
+			{
+				tagAchievement.setAttribute("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
+				tagAchievement.setAttribute("title", "There is " + data.games.length + " games in this package, and at least one of them have achievements");
+			}
+			else
+				tagAchievement.setAttribute("href", linkAchievement+data.games[0]+"/achievements/");
 		}
 		if(cbMac && data.mac) displayElems(tagMac);
 		if(cbLinux && data.linux) displayElems(tagLinux);
+		if(cbEarly && data.early_access) displayElems(tagEarly);
 
 		if(data.last_checked < (Date.now() - (24 * 60 * 60 * 1000))) // 24 hours have passed since last checked
 		{
 			if((!data.cards && cbCards) || (!data.achievement && cbAchievement) || (!data.mac && cbMac ) || (!data.linux && cbLinux) || (data.early_access && cbEarly))
 				needRequest = true;
 		}
-		else if(data.early_access && cbEarly) displayElems(tagEarly);
 	}
 	if(needRequest)
 	{
+		// console.log("[SG Game Tags] requesting " + linkPackAPI+packID);
 		GM_xmlhttpRequest({
 			method: "GET",
 			timeout: 10000,
@@ -596,13 +647,16 @@ function getSteamCategoriesFromPackage(packID, tagCard, tagAchievement, tagLinux
 			onload: function(data)
 			{
 				var IDs = JSON.parse(data.responseText)[packID].data;
-				if(IDs == null)
+				if(IDs == undefined)
 				{
 					PackageData[packID].cards = false;
 					PackageData[packID].achievement = false;
 					PackageData[packID].mac = false;
 					PackageData[packID].linux = false;
 					PackageData[packID].early_access = false;
+					PackageData[packID].games = [];
+					PackageData[packID].last_checked = Date.now();
+					GM_setValue("PackageData", JSON.stringify(PackageData));
 				}
 				else
 				{
@@ -800,6 +854,15 @@ function initTagPositionSetting(no)
 					$(form__checkbox_2).removeClass("is-selected").addClass("is-disabled");
 					$(form__checkbox_1).removeClass("is-disabled").addClass("is-selected");
 					GM_setValue("cbTagStyle", 1);
+
+					$(".tags-bundle").text(TextBundle);
+					$(".tags-card").text(TextCard);
+					$(".tags-achievement").text(TextAchievement);
+					$(".tags-wishlist").text(TextWishlist);
+					$(".tags-linux").text(TextLinux);
+					$(".tags-mac").text(TextMac);
+					$(".tags-early").text(TextEarly);
+					$(".tags-hidden").text(TextHidden);
 				}
 			);
 			$(form__checkbox_2).click(
@@ -808,6 +871,10 @@ function initTagPositionSetting(no)
 					$(form__checkbox_1).removeClass("is-selected").addClass("is-disabled");
 					$(form__checkbox_2).removeClass("is-disabled").addClass("is-selected");
 					GM_setValue("cbTagStyle", 2);
+					$(".row .tags").each(function(index, element)
+					{
+						$(element).text($(element).text().substring(0,1));
+					});
 				}
 			);
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.2
+// @version      3.2.2
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -390,7 +390,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 	if(needRequest)
 	{
 		var link = linkGameAPI+appID;
-		if(GameData[appID].last_checked === 0) link += "&filters=categories,platforms,genres";
+		if(GameData[appID].last_checked !== 0) link += "&filters=categories,platforms,genres";
 		// console.log("[SG Game Tags] requesting " + linkGameAPI+appID);
 
 		GM_xmlhttpRequest({
@@ -403,7 +403,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 				if(obj != undefined) // undefined = doesn't have store page or doesn't exist
 				// get steam apps categories : achievement, trading cards, etc
 				{
-					if(data.last_checked === 0)
+					if(GameData[appID].last_checked === 0)
 					{
 						if (obj.type != "game")
 						{

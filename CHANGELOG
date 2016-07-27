@@ -1,3 +1,7 @@
+3.3
+- Optimized filter from gameAPI if game is saved
+
+
 3.2
 - Added feature to customized tags color.
 - Added shortcut to giveaway setting (SG Game Tags setting is there) in navbar right dropdown.

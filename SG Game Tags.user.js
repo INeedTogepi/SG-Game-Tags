@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://github.com/Propheus/SG-Game-Tags
-// @version      3.2
+// @version      3.2.2
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -105,6 +105,7 @@ const TextEarly = "Early Access";
 
 const THIS_URL = window.location.href;
 const TIMEOUT = 0;
+const CACHE_TIME = 6*60*60*1000; //6 hours
 
 var cbCards = GM_getValue("cbCards", true);
 var cbAchievement = GM_getValue("cbAchievement", true);
@@ -127,9 +128,9 @@ var PackageData = GM_getValue("PackageData", "");
 var rgWishlist;
 var arrBundled;
 
-if(cbBundled && BundledCache < Date.now() - 6*60*60*1000) //6 hours. Check if need to request bundle list from ruphine API
+if(cbBundled && BundledCache < Date.now() - CACHE_TIME) // Check if need to request bundle list from ruphine API
 	getBundleList();
-else if(cbWishlist && UserdataCache < Date.now() - 6*60*60*1000) //6 hours. Check if need to request steam user api
+else if(cbWishlist && UserdataCache < Date.now() - CACHE_TIME) //6 hours. Check if need to request steam user api
 	getUserdata();
 else
 	main();
@@ -502,18 +503,24 @@ function getUserdata()
 		url: linkUserAPI,
 		onload: function(data)
 		{
-			UserdataAPI = data.responseText;
-			JSON.parse(UserdataAPI);
-			GM_setValue("UserdataAPI", UserdataAPI);
+			var result = JSON.parse(data.responseText);
+			if(result.rgOwnedApps.length !== 0) //check if user logged in
+			{
+				UserdataAPI = data.responseText;
+				GM_setValue("UserdataAPI", UserdataAPI);
 
-			UserdataCache = Date.now();
-			GM_setValue("UserdataCache", UserdataCache);
+				UserdataCache = Date.now();
+				GM_setValue("UserdataCache", UserdataCache);
+			}
+			else
+				console.log("[SG Game Tags] Unable to get wishlist data. User is not logged in to steam");
 
 			main();
 		},
 		ontimeout: function(data)
 		{
 			console.log("[SG Game Tags] Request " + linkUserAPI + " Timeout");
+			main();
 		}
 	});
 }

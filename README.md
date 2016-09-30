@@ -7,7 +7,7 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
 ## Features
 - Shows "Trading Cards" tag if the game has trading cards.
 - Shows "Achievements" tag if the game has steam achievements.
-- Shows "Bundled" tag if the game is marked as bundled by SG.
+- Shows "Bundled" tag if the game is marked as bundled by SG. v3.1 above, mouse hover shows bundled date.
 - Shows "Hidden" tag if the game is in your SG filter list.
 - Shows "Wishlist" tag if the game is in your Steam wishlist.
 - Shows "Linux" and "Mac" if the game supports multi platform.
@@ -19,8 +19,10 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
   - "Wishlist" tag will open http://www.steamgifts.com/account/steam/wishlist with corresponding game.
   - "Linux" & "Mac" tag will open apps store page. I can't make it refer to system requirement section directly.
   - "Early Access" tag will also open apps store page.
-- Tags can be toggled on/off at https://www.steamgifts.com/account/settings/giveaways
+- Tags can be toggled on/off at https://www.steamgifts.com/account/settings/giveaways.
 - Supports SG++ and Ext SG endless scroll. Credits to Alpe who helped me with this.
+- Links to giveaway setting and SG Game Tags setting inside Point and level dropdown.
+- Tags background color and text color customization.
 
 ## Current Tags
 | Tags | Caption |
@@ -40,17 +42,22 @@ The script requires :
 - [Violentmonkey](https://addons.opera.com/en/extensions/details/violent-monkey/) for Opera
 - [GreaseKit](http://www.macupdate.com/app/mac/20718/greasekit) for Safari
 
-"Hidden" and "Wishlist" tags are only shown inside giveaway page.
 
-The script saves game data for next uses. It saves data forever if the game is in bundle list. I assume once the game is marked as bundled, it will always be. If the game is not bundled, the script will save it as false for 1 day use.
-It does the same for trading cards and achievements data.
-It doesn't save data for hidden games and wishlist, because you can always remove the game from filter.
+"Hidden" tag is only shown inside giveaway page. It is useful for invite only giveaway. Still thinking a way to optimize the way to get list of hidden games so that I can make it appear outside giveaway page.
 
-Some games with wrong store page link won't show trading card status. e.g Left 4 Dead Bundle and Portal Bundle.
-Portal Bundle store page should be [this](http://store.steampowered.com/bundle/234/), but SG shows [this](http://store.steampowered.com/sub/7932/)
-I can't do anything about that, unless SG changes it.
+The script now can get list of bundle games with just 1 request, and will request again every 6 hours.
+Trading cards, achievement, linux, mac, early access still have 24 hours cache data.
+It doesn't save data for hidden games, because you can always remove the game from filter.
 
-Early Access tags is cached for 3 days, and it will not request data again if the game is not in early access. Early access data comes from Steam popular user defined tags.
+Some games with wrong store page link won't show trading card status. e.g Left 4 Dead Bundle and Portal Bundle since the [store page](http://store.steampowered.com/sub/7932/) itself is gone now.
+I can't do anything about that.
+
+If you feel your browser becomes too laggy, try factory reset or reinstall the script to remove all unused cached data, and update to v3.1.
+If bundled tag doesn't appear at all, check if you can open [this link](http://ruphine.esy.es/steamgifts/GetBundleStatus.php), maybe my server down.
+If wishlist tag doesn't appear at all, make sure you are logged in to steam with the same browser, and then check [this link](http://store.steampowered.com/dynamicstore/userdata/) if there are some number inside [] after "rgWishlist" :
+
+
+You can also see the code and maybe help me with the development at [github](https://github.com/Propheus/SG-Game-Tags).
 
 Feedback and bug report are always appreciated.
 
@@ -63,4 +70,5 @@ Feedback and bug report are always appreciated.
 ![6](http://i.imgur.com/yTF7oqt.jpg)
 ![7](http://i.imgur.com/IxY9TmK.jpg)
 ![8](http://i.imgur.com/GBz0Yua.jpg)
-![9](http://i.imgur.com/5c7r3Yc.jpg)
+![9](http://i.imgur.com/Ze20Dxh.png)
+![10](http://i.imgur.com/whnXmIA.png)

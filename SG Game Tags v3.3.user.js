@@ -245,7 +245,7 @@ function main()
 	}
 
 	if(/www.steamgifts.com\/giveaways\/new/.test(THIS_URL)) // process giveaway creation page
-		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
+		InitGiveawayCreationPage();
 	else if(/www.steamgifts.com\/account\/settings\/giveaways$/.test(THIS_URL)) // process giveaway setting page
 		initSetting();
 	else if(/www.steamgifts.com\/($|giveaways$|giveaways\/search)/.test(THIS_URL)) // homepage and all search active giveaway
@@ -816,31 +816,29 @@ function isPackage(link)
 
 
 // ========================================== create new giveaway page ========================================================
-function NewGiveawayDivUpdated(event)
+function InitGiveawayCreationPage()
 {
-	if(event.type == "DOMNodeInserted") //show bundle tag for shown game
+	if($(".js__autocomplete-data").length > 0)
 	{
-		var gamesfound = $(".table__row-inner-wrap");
-		$(".tags").remove();
-		$(".table__row-inner-wrap").each(function(index, element)
+		var observer = new MutationObserver(function(mutations)
 		{
-			var url = $(element).find("a.table__column__secondary-link").text();
-			var ID = getAppIDfromLink(url);
-			var Name = $(element).find(".table__column__heading").text();
-			var Target = $(element).find(".table__column--width-fill");
+			$(".tags").remove();
+			var table = $(mutations[0].addedNodes).find(".table__row-inner-wrap");
+			$(table).each(function(index, element)
+			{
+				var url = $(element).find("a.table__column__secondary-link").text();
+				var ID = getAppIDfromLink(url);
+				var Name = $(element).find(".table__column__heading").text();
+				var Target = $(element).find(".table__column--width-fill");
 
-			$(".js__autocomplete-data").off("DOMNodeInserted");
-			var tagBundle = createTag(pBundle.class, pBundle.title, pBundle.text, pBundle.link+Name, Target);
-			$(tagBundle).css("float", "right");
+				$(".js__autocomplete-data").off("DOMNodeInserted");
+				var tagBundle = createTag(pBundle.class, pBundle.title, pBundle.text, pBundle.link+Name, Target);
+				$(tagBundle).css("float", "right");
 
-			var type = isApp(url) ? 'app' : 'sub';
-			getBundleStatus(ID, type, tagBundle);
-		});
-		if(gamesfound.length > 0)
-		{
-			$(".js__autocomplete-data").on("DOMNodeRemoved", NewGiveawayDivUpdated);
-
-			$(".table__row-inner-wrap").on("click", function(event)
+				var type = isApp(url) ? 'app' : 'sub';
+				getBundleStatus(ID, type, tagBundle);
+			});
+			$(table).on("click", function(event)
 			{
 				var url = $(this).find("a.table__column__secondary-link").text();
 				var ID = getAppIDfromLink(url);
@@ -850,13 +848,9 @@ function NewGiveawayDivUpdated(event)
 				var type = isApp(url) ? 'app' : 'sub';
 				getBundleStatus(ID, type, tagBundle);
 			});
-		}
-	}
-	else if(event.type == "DOMNodeRemoved")//show / remove tag of selected game
-	{
-		$(".js__autocomplete-data").off("DOMNodeRemoved");
-		$(".table__row-inner-wrap").off("click");
-		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
+		});
+		var config = {childList: true, attributes: false, characterData: false};
+		observer.observe($(".js__autocomplete-data")[0], config);
 	}
 }
 

@@ -1,6 +1,7 @@
 3.3
 - Optimized filter from gameAPI if game is saved
-
+- Changed DomNodeInserted event to MutationObserver
+- Added new tags : Owned, Ignored, Other
 
 3.2
 - Added feature to customized tags color.

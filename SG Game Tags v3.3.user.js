@@ -252,13 +252,25 @@ function main()
 	{
 		ProcessGiveawayListPage($(".giveaway__row-inner-wrap"));
 		// handles element added later by endless scroll, add timeout to delay this function because it is triggered when ext SG runs
-		setTimeout(function()
+		// setTimeout(function()
+		// {
+		// 	$(document).on("DOMNodeInserted", ".widget-container", function(e)
+		// 	{
+		// 		ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
+		// 	});
+		// }, TIMEOUT);
+
+		var observer = new MutationObserver(function(mutations)
 		{
-			$(document).on("DOMNodeInserted", ".widget-container", function(e)
-			{
-				ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
+			console.log("new page loaded");
+			$.each(mutations, function(index, mutation){
+				ProcessGiveawayListPage($(mutation.previousSibling).find(".giveaway__row-inner-wrap"));
 			});
-		}, TIMEOUT);
+		});
+		var config = {childList: true, attributes: false, characterData: false};
+		$(".widget-container>div").each(function(index, element){
+			observer.observe(element, config);
+		});
 
 		if($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length === 0 && $(".featured__inner-wrap a img").length > 0)
 			ProcessFeaturedGiveaway($(".featured__inner-wrap a img")[0].src);
@@ -831,7 +843,6 @@ function InitGiveawayCreationPage()
 				var Name = $(element).find(".table__column__heading").text();
 				var Target = $(element).find(".table__column--width-fill");
 
-				$(".js__autocomplete-data").off("DOMNodeInserted");
 				var tagBundle = createTag(pBundle.class, pBundle.title, pBundle.text, pBundle.link+Name, Target);
 				$(tagBundle).css("float", "right");
 

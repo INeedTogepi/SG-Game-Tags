@@ -1,7 +1,7 @@
 3.3
 - Optimized filter from gameAPI if game is saved
 - Changed DomNodeInserted event to MutationObserver
-- Added new tags : Owned, Ignored, Other
+- Added new tags : Owned, Ignored
 - Added endless scroll support to other pages with games.
 
 3.2

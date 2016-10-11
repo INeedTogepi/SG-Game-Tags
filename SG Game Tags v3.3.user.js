@@ -244,30 +244,22 @@ function main()
 		PackageData = JSON.parse(PackageData);
 	}
 
+	var observer;
+	var config = {childList: true, attributes: false, characterData: false, subtree: true};
 	if(/www.steamgifts.com\/giveaways\/new/.test(THIS_URL)) // process giveaway creation page
 		InitGiveawayCreationPage();
 	else if(/www.steamgifts.com\/account\/settings\/giveaways$/.test(THIS_URL)) // process giveaway setting page
 		initSetting();
 	else if(/www.steamgifts.com\/($|giveaways$|giveaways\/search)/.test(THIS_URL)) // homepage and all search active giveaway
 	{
-		ProcessGiveawayListPage($(".giveaway__row-inner-wrap"));
+		ProcessGiveawayListPage($(".widget-container"));
 		// handles element added later by endless scroll, add timeout to delay this function because it is triggered when ext SG runs
-		// setTimeout(function()
-		// {
-		// 	$(document).on("DOMNodeInserted", ".widget-container", function(e)
-		// 	{
-		// 		ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
-		// 	});
-		// }, TIMEOUT);
-
-		var observer = new MutationObserver(function(mutations)
+		observer = new MutationObserver(function(mutations)
 		{
-			console.log("new page loaded");
 			$.each(mutations, function(index, mutation){
-				ProcessGiveawayListPage($(mutation.previousSibling).find(".giveaway__row-inner-wrap"));
+				ProcessGiveawayListPage(mutation.addedNodes);
 			});
 		});
-		var config = {childList: true, attributes: false, characterData: false};
 		$(".widget-container>div").each(function(index, element){
 			observer.observe(element, config);
 		});
@@ -278,15 +270,20 @@ function main()
 	// user profile & group page excluding user trade and feedback and excluding group users, stats, and wishlist
 	else if(/www.steamgifts.com\/(user|group)\//.test(THIS_URL) && !/user\/\w+\/(feedback|trade)/.test(THIS_URL) && !/group\/\w+\/\w+\/(users|stats|wishlist)/.test(THIS_URL)) // exclude some pages
 	{
-		ProcessGiveawayListPage($(".giveaway__row-inner-wrap"));
-		// handles element added later by endless scroll
-		setTimeout(function()
+		ProcessGiveawayListPage($(".widget-container"));
+		// handles element added later by endless scroll, add timeout to delay this function because it is triggered when ext SG runs
+		observer = new MutationObserver(function(mutations)
 		{
-			$(document).on("DOMNodeInserted", ".widget-container", function(e)
-			{
-				ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
+			$.each(mutations, function(index, mutation){
+				ProcessGiveawayListPage(mutation.addedNodes);
 			});
-		}, TIMEOUT);
+		});
+		$(".widget-container>div").each(function(index, element){
+			observer.observe(element, config);
+		});
+
+		if($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length === 0 && $(".featured__inner-wrap a img").length > 0)
+			ProcessFeaturedGiveaway($(".featured__inner-wrap a img")[0].src);
 	}
 	else if(/www.steamgifts.com\/giveaway\//.test(THIS_URL)) // giveaway page https://www.steamgifts.com/giveaway/FGbTw/left-4-dead-2
 		ProcessFeaturedGiveaway($(".featured__inner-wrap a")[0].href);
@@ -300,7 +297,19 @@ function main()
 	// https://www.steamgifts.com/giveaways/wishlist
 	// https://www.steamgifts.com/account/settings/giveaways/filters
 	else if(/www.steamgifts.com\/(sales|account\/steam\/(games|wishlist)|giveaways\/(created|entered|won|wishlist)|account\/settings\/giveaways\/filters|group\/\w+\/\w+\/wishlist)/.test(THIS_URL))
-		ProcessGameListPage();
+	{
+		ProcessGameListPage($(".widget-container"));
+		observer = new MutationObserver(function(mutations)
+		{
+			$.each(mutations, function(index, mutation){
+				ProcessGameListPage(mutation.addedNodes);
+			});
+		});
+		// config.subtree = false;
+		$(".widget-container>div").each(function(index, element){
+			observer.observe(element, config);
+		});
+	}
 
 	AddShortcutToSettingPage();
 }
@@ -316,11 +325,11 @@ function ProcessFeaturedGiveaway(URL)
 	}
 }
 
-function ProcessGiveawayListPage(scope) // giveaways list with creator name
+function ProcessGiveawayListPage(parent) // giveaways list with creator name
 {
 	if(cbBundled || cbCards || cbAchievement || cbHidden || cbWishlist || cbLinux || cbMac || cbEarly) // check if at least one tag enabled
 	{
-		$(scope).each(function(index, element)
+		$(parent).find(".giveaway__row-inner-wrap").each(function(index, element)
 		{
 			var URL = $(element).find("a.giveaway__icon").attr("href");
 			if(URL !== undefined)
@@ -338,11 +347,11 @@ function ProcessGiveawayListPage(scope) // giveaways list with creator name
 	}
 }
 
-function ProcessGameListPage() // giveaways / games list
+function ProcessGameListPage(parent) // giveaways / games list
 {
 	if(cbBundled || cbCards || cbAchievement || cbHidden || cbWishlist || cbLinux || cbMac || cbEarly) // check if at least one tag enabled
 	{
-		$(".table__row-inner-wrap").each(function(index, element)
+		$(parent).find(".table__row-inner-wrap").each(function(index, element)
 		{
 			var URL;
 			if(/www.steamgifts.com\/account\/settings\/giveaways\/filters/.test(THIS_URL))

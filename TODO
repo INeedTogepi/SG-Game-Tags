@@ -11,3 +11,15 @@ Low priority
 - Add support to gridview.
 - New tags (Steam User Reviews).
 - 
+
+const pRank = {
+	class   : "tags_rank",
+	text    : "Rank : ",
+	title   : "In community wishlist, this game ranked #",
+	min     : "",
+	link    : "https://www.steamgifts.com/giveaways/wishlist/search?q="
+	color1	: "#F1C232",
+	color2	: "#000000"
+	color1	: "#0fefc4",
+	color2	: "#000000"
+}

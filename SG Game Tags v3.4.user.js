@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.3.0
+// @version      3.4
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -100,16 +100,16 @@ const pOwned = {
 	text	: "Owned",
 	title	: "You already have this game",
 	min		: "O",
-	color1	: "#F1C232",
-	color2	: "#000000"
+	color1  : "#444444",
+	color2  : "#FF9900"
 };
 const pIgnored = {
 	class	: "tags_ignored",
 	text	: "Ignored",
 	title	: "You marked this game as not interested",
-	min		: "><",
-	color1	: "#0fefc4",
-	color2	: "#000000"
+	min		: "X",
+	color1	: "#E06666",
+	color2	: "#FFFFFF"
 };
 
 /* CSS */
@@ -305,7 +305,6 @@ function main()
 				ProcessGameListPage(mutation.addedNodes);
 			});
 		});
-		// config.subtree = false;
 		$(".widget-container>div").each(function(index, element){
 			observer.observe(element, config);
 		});
@@ -406,8 +405,8 @@ function ProcessTags(Target, URL, Name)
 		tagLinux       = createTag(pLinux.class + " minimalist", pLinux.title, pLinux.min, linkStore, Target);
 		tagMac         = createTag(pMac.class + " minimalist", pMac.title, pMac.min, linkStore, Target);
 		tagEarly       = createTag(pEarly.class + " minimalist", pEarly.title, pEarly.min, linkStore, Target);
-		tagOwned       = createTag(pOwned.class + " minimalist", pOwned.title, pOwned.text, linkStore, Target);
-		tagIgnored     = createTag(pIgnored.class + " minimalist", pIgnored.title, pIgnored.text, linkStore, Target);
+		tagOwned       = createTag(pOwned.class + " minimalist", pOwned.title, pOwned.min, linkStore, Target);
+		tagIgnored     = createTag(pIgnored.class + " minimalist", pIgnored.title, pIgnored.min, linkStore, Target);
 		// tagOther       = createTag(pIgnored.class + " minimalist", pIgnored.title, pIgnored.min, linkStore, Target);
 	}
 
@@ -1208,7 +1207,7 @@ function initColorpicker(id, currentColor, tag, property)
 		localStorageKey: "spectrum.sggametags",
 		maxSelectionSize: 8,
 		palette: [
-			[pBundle.color1, pCard.color1, pAchievement.color1, pWishlist.color1, pLinux.color1, pMac.color1, pEarly.color1, pHidden.color1],
+			[pBundle.color1, pCard.color1, pAchievement.color1, pWishlist.color1, pHidden.color1, pLinux.color1, pMac.color1, pEarly.color1, pOwned.color1, pIgnored.color1],
 			["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
 			["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
 			["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],

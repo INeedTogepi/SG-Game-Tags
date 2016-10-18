@@ -11,6 +11,9 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
 - Shows "Hidden" tag if the game is in your SG filter list.
 - Shows "Wishlist" tag if the game is in your Steam wishlist.
 - Shows "Linux" and "Mac" if the game supports multi platform.
+- Shows "Early Access" if the game is currently in early access state.
+- Shows "Owned" if the game exist in your Steam library.
+- Shows "Ignored" if you marked this game as not interested at Steam store page.
 - Tags are links :
   - "Trading Cards" tag will open steamcardexchange inventory. 
   - "Achievements" tag will open steam achievements of the game.
@@ -18,7 +21,7 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
   - "Hidden" tag will open http://www.steamgifts.com/account/settings/giveaways/filters with corresponding game.
   - "Wishlist" tag will open http://www.steamgifts.com/account/steam/wishlist with corresponding game.
   - "Linux" & "Mac" tag will open apps store page. I can't make it refer to system requirement section directly.
-  - "Early Access" tag will also open apps store page.
+  - "Early Access", "Ignored" tag will also open apps store page.
 - Tags can be toggled on/off at https://www.steamgifts.com/account/settings/giveaways.
 - Supports SG++ and Ext SG endless scroll. Credits to Alpe who helped me with this.
 - Links to giveaway setting and SG Game Tags setting inside Point and level dropdown.
@@ -35,6 +38,8 @@ I name it SG Game Tags. I actually named it SGTags, but it is [already used](htt
 | "Linux" | Linux supported |
 | "Mac" | Mac supported |
 | "Early Access" | This game is in early access state |
+| "Owned" | You already have this game |
+| "Ignored" | You marked this game as not interested |
 
 The script requires :
 - [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=en) for Chrome
@@ -52,7 +57,6 @@ It doesn't save data for hidden games, because you can always remove the game fr
 Some games with wrong store page link won't show trading card status. e.g Left 4 Dead Bundle and Portal Bundle since the [store page](http://store.steampowered.com/sub/7932/) itself is gone now.
 I can't do anything about that.
 
-If you feel your browser becomes too laggy, try factory reset or reinstall the script to remove all unused cached data, and update to v3.1.
 If bundled tag doesn't appear at all, check if you can open [this link](http://ruphine.esy.es/steamgifts/GetBundleStatus.php), maybe my server down.
 If wishlist tag doesn't appear at all, make sure you are logged in to steam with the same browser, and then check [this link](http://store.steampowered.com/dynamicstore/userdata/) if there are some number inside [] after "rgWishlist" :
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.3.0
+// @version      3.3.2
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -18,17 +18,102 @@
 // ==/UserScript==
 
 /*jshint multistr: true */
-/* CSS */
-const default_bundle = "#E9202A";
-const default_card = "#3AA435";
-const default_achievement = "#305AC9";
-const default_wishlist = "#9335F1";
-const default_linux = "#E67300";
-const default_mac = "#777777";
-const default_early = "#9FA027";
-const default_hidden = "#A0522D";
 
-var myCSS = '\
+/* Constant Variables */
+const linkGameAPI = "http://store.steampowered.com/api/appdetails?appids=";//filters=categories,platforms,genres&
+const linkPackAPI = "http://store.steampowered.com/api/packagedetails?packageids=";
+const linkBundleAPI = "http://www.ruphine.esy.es/steamgifts/GetBundleStatus.php"; //?AppID=325470
+const linkUserAPI = "http://store.steampowered.com/dynamicstore/userdata/";
+
+//p for properties
+const pBundle = {
+	class	: "tags_bundle",
+	text	: "Bundled",
+	title	: "Bundled since ",
+	min		: "B",
+	link	: "https://www.steamgifts.com/bundle-games/search?q=",
+	color1	: "#E9202A",
+	color2	: "#FFFFFF"
+};
+const pCard = {
+	class	: "tags_card",
+	text	: "Trading Cards",
+	title	: "This game has trading cards",
+	min		: "T",
+	link	: "http://www.steamcardexchange.net/index.php?inventorygame-appid-",
+	color1	: "#3AA435",
+	color2	: "#FFFFFF"
+};
+const pAchievement = {
+	class	: "tags_achievement",
+	text	: "Achievements",
+	title	: "This game has steam achievements",
+	min		: "A",
+	link	: "http://steamcommunity.com/stats/", // 424280/achievements/";
+	color1	: "#305AC9",
+	color2	: "#FFFFFF"
+};
+const pWishlist = {
+	class	: "tags_wishlist",
+	text	: "Wishlist",
+	title	: "This game is in your Steam wishlist",
+	min		: "W",
+	link	: "https://www.steamgifts.com/account/steam/wishlist/search?q=",
+	color1	: "#9335F1",
+	color2	: "#FFFFFF"
+};
+const pLinux = {
+	class	: "tags_linux",
+	text	: "Linux",
+	title	: "Linux supported",
+	min		: "L",
+	color1	: "#E67300",
+	color2	: "#FFFFFF"
+};
+const pMac = {
+	class	: "tags_mac",
+	text	: "Mac",
+	title	: "Mac Supported",
+	min		: "M",
+	color1	: "#777777",
+	color2	: "#FFFFFF"
+};
+const pEarly = {
+	class	: "tags_early",
+	text	: "Early Access",
+	title	: "This game is in early access state",
+	min		: "E",
+	color1	: "#9FA027",
+	color2	: "#FFFFFF"
+};
+const pHidden = {
+	class	: "tags_hidden",
+	text	: "Hidden",
+	title	: "This game is in your filter list",
+	min		: "H",
+	link	: "https://www.steamgifts.com/account/settings/giveaways/filters/search?q=",
+	color1	: "#A0522D",
+	color2	: "#FFFFFF"
+};
+const pOwned = {
+	class	: "tags_owned",
+	text	: "Owned",
+	title	: "You already have this game",
+	min		: "O",
+	color1  : "#444444",
+	color2  : "#FF9900"
+};
+const pIgnored = {
+	class	: "tags_ignored",
+	text	: "Ignored",
+	title	: "You marked this game as not interested",
+	min		: "X",
+	color1	: "#E06666",
+	color2	: "#FFFFFF"
+};
+
+/* CSS */
+const myCSS = '\
 	.tags { \
 		text-decoration: none; \
 		border-radius: 4px; \
@@ -39,71 +124,58 @@ var myCSS = '\
 		display: none; \
 		white-space: nowrap; \
 	} \
-	.tags.tags-minimalist { \
+	.tags.minimalist { \
 		margin-right: 0; \
 		margin-left: 5px; \
-	}\
-	.my__checkbox { cursor:pointer; padding:7px 0 } \
-	.my__checkbox i { margin-right:7px } \
-	.my__checkbox:not(:last-of-type) { border-bottom:1px dotted #d2d6e0 } \
+	} \
+	.my__checkbox { cursor:pointer; padding:7px 0; } \
+	.my__checkbox i { margin-right:7px; } \
+	.my__checkbox:not(:last-of-type) { border-bottom:1px dotted #d2d6e0; } \
 	.my__checkbox:not(:hover) .form__checkbox__hover,.my__checkbox.is-selected .form__checkbox__hover,.my__checkbox:not(.is-selected) .form__checkbox__selected,.my__checkbox:hover .form__checkbox__default,.my__checkbox.is-selected .form__checkbox__default { \
-		display:none \
+		display:none; \
+	} \
+	.' + pBundle.class + ' { \
+		background-color: ' + GM_getValue("bundle-1", pBundle.color1) + '; \
+		color: ' + GM_getValue("bundle-2", pBundle.color2) + '; \
+	} \
+	.' + pCard.class + ' { \
+		background-color: ' + GM_getValue("card-1", pCard.color1) + '; \
+		color: ' + GM_getValue("card-2", pCard.color2) + '; \
+	} \
+	.' + pAchievement.class + ' { \
+		background-color: ' + GM_getValue("achievement-1", pAchievement.color1) + '; \
+		color: ' + GM_getValue("achievement-2", pAchievement.color2) + '; \
+	} \
+	.' + pWishlist.class + ' { \
+		background-color: ' + GM_getValue("wishlist-1", pWishlist.color1) + '; \
+		color: ' + GM_getValue("wishlist-2", pWishlist.color2) + '; \
+	} \
+	.' + pLinux.class + ' { \
+		background-color: ' + GM_getValue("linux-1", pLinux.color1) + '; \
+		color: ' + GM_getValue("linux-2", pLinux.color2) + '; \
+	} \
+	.' + pMac.class + ' { \
+		background-color: ' + GM_getValue("mac-1", pMac.color1) + '; \
+		color: ' + GM_getValue("mac-2", pMac.color2) + '; \
+	} \
+	.' + pEarly.class + ' { \
+		background-color: ' + GM_getValue("early-1", pEarly.color1) + '; \
+		color: ' + GM_getValue("early-2", pEarly.color2) + '; \
+	} \
+	.' + pHidden.class + ' { \
+		background-color: ' + GM_getValue("hidden-1", pHidden.color1) + '; \
+		color: ' + GM_getValue("hidden-2", pHidden.color2) + '; \
+	} \
+	.' + pOwned.class + ' { \
+		background-color: ' + GM_getValue("owned-1", pOwned.color1) + '; \
+		color: ' + GM_getValue("owned-2", pOwned.color2) + '; \
+	} \
+	.' + pIgnored.class + ' { \
+		background-color: ' + GM_getValue("ignored-1", pIgnored.color1) + '; \
+		color: ' + GM_getValue("ignored-2", pIgnored.color2) + '; \
 	} \
 ';
-myCSS += '.tags-bundle { background-color: ' + GM_getValue("bundle-1", default_bundle) + '; color: ' + GM_getValue("bundle-2", "#FFFFFF") + '}';
-myCSS += '.tags-card { background-color: ' + GM_getValue("card-1", default_card) + '; color: ' + GM_getValue("card-2", "#FFFFFF") + '}';
-myCSS += '.tags-achievement { background-color: ' + GM_getValue("achievement-1", default_achievement) + '; color: ' + GM_getValue("achievement-2", "#FFFFFF") + '}';
-myCSS += '.tags-wishlist { background-color: ' + GM_getValue("wishlist-1", default_wishlist) + '; color: ' + GM_getValue("wishlist-2", "#FFFFFF") + '}';
-myCSS += '.tags-linux { background-color: ' + GM_getValue("linux-1", default_linux) + '; color: ' + GM_getValue("linux-2", "#FFFFFF") + '}';
-myCSS += '.tags-mac { background-color: ' + GM_getValue("mac-1", default_mac) + '; color: ' + GM_getValue("mac-2", "#FFFFFF") + '}';
-myCSS += '.tags-early { background-color: ' + GM_getValue("early-1", default_early) + '; color: ' + GM_getValue("early-2", "#FFFFFF") + '}';
-myCSS += '.tags-hidden { background-color: ' + GM_getValue("hidden-1", default_hidden) + '; color: ' + GM_getValue("hidden-2", "#FFFFFF") + '}';
-
 $("head").append('<style type="text/css">' + myCSS + '</style>');
-
-/* Constant Variables */
-const linkBundle = "https://www.steamgifts.com/bundle-games/search?q=";
-const linkCard = "http://www.steamcardexchange.net/index.php?inventorygame-appid-";
-const linkAchievement = "http://steamcommunity.com/stats/"; // 424280/achievements/";
-const linkHidden = "https://www.steamgifts.com/account/settings/giveaways/filters/search?q=";
-const linkWishlist = "https://www.steamgifts.com/account/steam/wishlist/search?q=";
-
-const linkGameAPI = "http://store.steampowered.com/api/appdetails?appids=";//filters=categories,platforms,genres&
-const linkPackAPI = "http://store.steampowered.com/api/packagedetails?packageids=";
-const linkBundleAPI = "http://www.ruphine.esy.es/steamgifts/GetBundleStatus.php"; //?AppID=325470
-const linkUserAPI = "http://store.steampowered.com/dynamicstore/userdata/";
-
-const ClassCard = "tags tags-card";
-const TitleCard = "This game has trading cards";
-const TextCard = "Trading Cards";
-
-const ClassBundle = "tags tags-bundle";
-const TitleBundle = "Bundled since ";
-const TextBundle = "Bundled";
-
-const ClassAchievement = "tags tags-achievement";
-const TitleAchievement = "This game has steam achievements";
-const TextAchievement = "Achievements";
-
-const ClassHidden = "tags tags-hidden";
-const TitleHidden = "This game is in your filter list";
-const TextHidden = "Hidden";
-
-const ClassWishlist = "tags tags-wishlist";
-const TitleWishlist = "This game is in your Steam wishlist";
-const TextWishlist = "Wishlist";
-
-const ClassLinux = "tags tags-linux";
-const TitleLinux = "Linux supported";
-const TextLinux = "Linux";
-
-const ClassMac = "tags tags-mac";
-const TitleMac = "Mac supported";
-const TextMac = "Mac";
-
-const ClassEarly = "tags tags-early";
-const TitleEarly = "This game is in early access state";
-const TextEarly = "Early Access";
 
 const THIS_URL = window.location.href;
 const TIMEOUT = 0;
@@ -112,11 +184,13 @@ const CACHE_TIME = 6*60*60*1000; //6 hours
 var cbCards = GM_getValue("cbCards", true);
 var cbAchievement = GM_getValue("cbAchievement", true);
 var cbBundled = GM_getValue("cbBundled", true);
-var cbHidden = GM_getValue("cbHidden", true);
 var cbWishlist = GM_getValue("cbWishlist", true);
 var cbLinux = GM_getValue("cbLinux", false);
 var cbMac = GM_getValue("cbMac", false);
 var cbEarly = GM_getValue("cbEarly", false);
+var cbHidden = GM_getValue("cbHidden", true);
+var cbOwned = GM_getValue("cbOwned", true);
+var cbIgnored = GM_getValue("cbIgnored", false);
 
 var cbTagStyle = GM_getValue("cbTagStyle", 1); //1 = full, 2 = minimalist
 
@@ -127,12 +201,12 @@ var UserdataCache = GM_getValue("UserdataCache", 0);
 var GameData = GM_getValue("GameData", "");
 var PackageData = GM_getValue("PackageData", "");
 
-var rgWishlist;
+var rgWishlist, rgOwnedApps, rgOwnedPackages, rgIgnoredApps, rgIgnoredPackages;
 var arrBundled;
 
 if(cbBundled && BundledCache < Date.now() - CACHE_TIME) // Check if need to request bundle list from ruphine API
 	getBundleList();
-else if(cbWishlist && UserdataCache < Date.now() - CACHE_TIME) //6 hours. Check if need to request steam user api
+else if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME) //6 hours. Check if need to request steam user api
 	getUserdata();
 else
 	main();
@@ -149,61 +223,71 @@ function main()
 	}
 
 	try {
-		rgWishlist = JSON.parse(UserdataAPI).rgWishlist;
+		var userdata = JSON.parse(UserdataAPI);
+		rgWishlist = userdata.rgWishlist;
+		rgOwnedApps = userdata.rgOwnedApps;
+		rgOwnedPackages = userdata.rgOwnedPackages;
+		rgIgnoredApps = userdata.rgIgnoredApps;
+		rgIgnoredPackages = userdata.rgIgnoredPackages;
+
 	}
 	catch (e) {
-		console.log("[SG Game Tags] Invalid json format for Wishlist");
+		console.log("[SG Game Tags] Invalid json format for UserdataAPI");
 		UserdataAPI = ""; GM_setValue("UserdataAPI", "");
 		UserdataCache = 0; GM_setValue("UserdataCache", 0);
 	}
 
-	if(GameData == "") PrepareJSON();
+	if(GameData === "") PrepareJSON();
 	else
 	{
 		GameData = JSON.parse(GameData);
 		PackageData = JSON.parse(PackageData);
 	}
 
+	var observer;
+	var config = {childList: true, attributes: false, characterData: false, subtree: true};
 	if(/www.steamgifts.com\/giveaways\/new/.test(THIS_URL)) // process giveaway creation page
-		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
+		InitGiveawayCreationPage();
 	else if(/www.steamgifts.com\/account\/settings\/giveaways$/.test(THIS_URL)) // process giveaway setting page
 		initSetting();
 	else if(/www.steamgifts.com\/($|giveaways$|giveaways\/search)/.test(THIS_URL)) // homepage and all search active giveaway
 	{
-		ProcessGiveawayListPage($(".giveaway__row-inner-wrap"));
+		ProcessGiveawayListPage($(".widget-container"));
 		// handles element added later by endless scroll, add timeout to delay this function because it is triggered when ext SG runs
-		setTimeout(function()
+		observer = new MutationObserver(function(mutations)
 		{
-			$(document).on("DOMNodeInserted", ".widget-container", function(e)
-			{
-				ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
+			$.each(mutations, function(index, mutation){
+				ProcessGiveawayListPage(mutation.addedNodes);
 			});
-		}, TIMEOUT);
+		});
+		$(".widget-container>div").each(function(index, element){
+			observer.observe(element, config);
+		});
 
-		if($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length == 0 && $(".featured__inner-wrap a img").length > 0)
-		{
-			var URL = $(".featured__inner-wrap a img")[0].src;
-			ProcessFeaturedGiveaway(URL);
-		}
+		if($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length === 0 && $(".featured__inner-wrap a img").length > 0)
+			ProcessFeaturedGiveaway($(".featured__inner-wrap a img")[0].src);
 	}
 	// user profile & group page excluding user trade and feedback and excluding group users, stats, and wishlist
-	else if(/www.steamgifts.com\/(user|group)\//.test(THIS_URL) && !/user\/\w+\/(feedback|trade)/.test(THIS_URL) && !/group\/\w+\/\w+\/(users|stats|wishlist)/.test(THIS_URL)) // exclude 
+	else if(/www.steamgifts.com\/(user|group)\//.test(THIS_URL) && !/user\/\w+\/(feedback|trade)/.test(THIS_URL) && !/group\/\w+\/\w+\/(users|stats|wishlist)/.test(THIS_URL)) // exclude some pages
 	{
-		ProcessGiveawayListPage($(".giveaway__row-inner-wrap"));
-		// handles element added later by endless scroll
-		setTimeout(function()
+		ProcessGiveawayListPage($(".widget-container"));
+		// handles element added later by endless scroll, add timeout to delay this function because it is triggered when ext SG runs
+		observer = new MutationObserver(function(mutations)
 		{
-			$(document).on("DOMNodeInserted", ".widget-container", function(e)
-			{
-				ProcessGiveawayListPage($(e.target).find(".giveaway__row-inner-wrap"));
+			$.each(mutations, function(index, mutation){
+				ProcessGiveawayListPage(mutation.addedNodes);
 			});
-		}, TIMEOUT);
+		});
+		$(".widget-container>div").each(function(index, element){
+			observer.observe(element, config);
+		});
+
+		if($(".featured__inner-wrap .global__image-outer-wrap--missing-image").length === 0 && $(".featured__inner-wrap a img").length > 0)
+			ProcessFeaturedGiveaway($(".featured__inner-wrap a img")[0].src);
 	}
 	else if(/www.steamgifts.com\/giveaway\//.test(THIS_URL)) // giveaway page https://www.steamgifts.com/giveaway/FGbTw/left-4-dead-2
-	{
-		var URL = $(".featured__inner-wrap a")[0].href;
-		ProcessFeaturedGiveaway(URL);
-	}
+		ProcessFeaturedGiveaway($(".featured__inner-wrap a")[0].href);
+
 	// https://www.steamgifts.com/sales*
 	// https://www.steamgifts.com/sales/account/steam/games
 	// https://www.steamgifts.com/sales/account/steam/wishlist
@@ -213,7 +297,18 @@ function main()
 	// https://www.steamgifts.com/giveaways/wishlist
 	// https://www.steamgifts.com/account/settings/giveaways/filters
 	else if(/www.steamgifts.com\/(sales|account\/steam\/(games|wishlist)|giveaways\/(created|entered|won|wishlist)|account\/settings\/giveaways\/filters|group\/\w+\/\w+\/wishlist)/.test(THIS_URL))
-		ProcessGameListPage();
+	{
+		ProcessGameListPage($(".widget-container"));
+		observer = new MutationObserver(function(mutations)
+		{
+			$.each(mutations, function(index, mutation){
+				ProcessGameListPage(mutation.addedNodes);
+			});
+		});
+		$(".widget-container>div").each(function(index, element){
+			observer.observe(element, config);
+		});
+	}
 
 	AddShortcutToSettingPage();
 }
@@ -229,14 +324,14 @@ function ProcessFeaturedGiveaway(URL)
 	}
 }
 
-function ProcessGiveawayListPage(scope) // giveaways list with creator name
+function ProcessGiveawayListPage(parent) // giveaways list with creator name
 {
 	if(cbBundled || cbCards || cbAchievement || cbHidden || cbWishlist || cbLinux || cbMac || cbEarly) // check if at least one tag enabled
 	{
-		$(scope).each(function(index, element)
+		$(parent).find(".giveaway__row-inner-wrap").each(function(index, element)
 		{
 			var URL = $(element).find("a.giveaway__icon").attr("href");
-			if(URL != undefined)
+			if(URL !== undefined)
 			{
 				var Name = $(element).find(".giveaway__heading__name").contents().filter(
 					function() //return text without [NEW] and [FREE]
@@ -251,11 +346,11 @@ function ProcessGiveawayListPage(scope) // giveaways list with creator name
 	}
 }
 
-function ProcessGameListPage() // giveaways / games list
+function ProcessGameListPage(parent) // giveaways / games list
 {
 	if(cbBundled || cbCards || cbAchievement || cbHidden || cbWishlist || cbLinux || cbMac || cbEarly) // check if at least one tag enabled
 	{
-		$(".table__row-inner-wrap").each(function(index, element)
+		$(parent).find(".table__row-inner-wrap").each(function(index, element)
 		{
 			var URL;
 			if(/www.steamgifts.com\/account\/settings\/giveaways\/filters/.test(THIS_URL))
@@ -263,7 +358,7 @@ function ProcessGameListPage() // giveaways / games list
 			else
 				URL = $($(element).find(".global__image-inner-wrap")[0]).css('background-image');
 
-			if(URL != undefined)
+			if(URL !== undefined)
 			{
 				URL = URL.replace('url(', '').replace(')', '');
 				var Name = $(element).find(".table__column__heading").text().substring(0,30);
@@ -287,33 +382,40 @@ function ProcessTags(Target, URL, Name)
 	else if(isPackage(URL))
 		linkStore = "http://store.steampowered.com/sub/" + ID;
 
+	var tagBundle, tagCard, tagAchievement, tagWishlist, tagLinux, tagMac, tagEarly, tagHidden, tagOwned, tagIgnored, tagOther;
 	if(cbTagStyle == 1)
 	{
-		var tagBundle      = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
-		var tagCard        = createTag(ClassCard, TitleCard, TextCard, linkCard+ID, tagBundle);
-		var tagAchievement = createTag(ClassAchievement, TitleAchievement, TextAchievement, linkAchievement+ID+"/achievements/", tagCard);
-		var tagWishlist    = createTag(ClassWishlist, TitleWishlist, TextWishlist, linkWishlist+Name, tagAchievement);
-		var tagLinux       = createTag(ClassLinux, TitleLinux, TextLinux, linkStore, tagWishlist);
-		var tagMac         = createTag(ClassMac, TitleMac, TextMac, linkStore, tagLinux);
-		var tagEarly       = createTag(ClassEarly, TitleEarly, TextEarly, linkStore, tagMac);
+		tagBundle      = createTag(pBundle.class, pBundle.title, pBundle.text, pBundle.link+Name, Target);
+		tagCard        = createTag(pCard.class, pCard.title, pCard.text, pCard.link+ID, tagBundle);
+		tagAchievement = createTag(pAchievement.class, pAchievement.title, pAchievement.text, pAchievement.link+ID+"/achievements/", tagCard);
+		tagWishlist    = createTag(pWishlist.class, pWishlist.title, pWishlist.text, pWishlist.link+Name, tagAchievement);
+		tagLinux       = createTag(pLinux.class, pLinux.title, pLinux.text, linkStore, tagWishlist);
+		tagMac         = createTag(pMac.class, pMac.title, pMac.text, linkStore, tagLinux);
+		tagEarly       = createTag(pEarly.class, pEarly.title, pEarly.text, linkStore, tagMac);
+		tagOwned       = createTag(pOwned.class, pOwned.title, pOwned.text, linkStore, tagEarly);
+		tagIgnored     = createTag(pIgnored.class, pIgnored.title, pIgnored.text, linkStore, tagOwned);
+		// tagOther       = createTag(pIgnored.class, pIgnored.title, pIgnored.text, linkStore, tagEarly);
 	}
 	else
 	{
-		var tagBundle      = createTag(ClassBundle + " tags-minimalist", TitleBundle, "B", linkBundle+Name, Target);
-		var tagCard        = createTag(ClassCard + " tags-minimalist", TitleCard, "T", linkCard+ID, Target);
-		var tagAchievement = createTag(ClassAchievement + " tags-minimalist", TitleAchievement, "A", linkAchievement+ID+"/achievements/", Target);
-		var tagWishlist    = createTag(ClassWishlist + " tags-minimalist", TitleWishlist, "W", linkWishlist+Name, Target);
-		var tagLinux       = createTag(ClassLinux + " tags-minimalist", TitleLinux, "L", linkStore, Target);
-		var tagMac         = createTag(ClassMac + " tags-minimalist", TitleMac, "M", linkStore, Target);
-		var tagEarly       = createTag(ClassEarly + " tags-minimalist", TitleEarly, "E", linkStore, Target);
+		tagBundle      = createTag(pBundle.class + " minimalist", pBundle.title, pBundle.min, pBundle.link+Name, Target);
+		tagCard        = createTag(pCard.class + " minimalist", pCard.title, pCard.min, pCard.link+ID, Target);
+		tagAchievement = createTag(pAchievement.class + " minimalist", pAchievement.title, pAchievement.min, pAchievement.link+ID+"/achievements/", Target);
+		tagWishlist    = createTag(pWishlist.class + " minimalist", pWishlist.title, pWishlist.min, pWishlist.link+Name, Target);
+		tagLinux       = createTag(pLinux.class + " minimalist", pLinux.title, pLinux.min, linkStore, Target);
+		tagMac         = createTag(pMac.class + " minimalist", pMac.title, pMac.min, linkStore, Target);
+		tagEarly       = createTag(pEarly.class + " minimalist", pEarly.title, pEarly.min, linkStore, Target);
+		tagOwned       = createTag(pOwned.class + " minimalist", pOwned.title, pOwned.min, linkStore, Target);
+		tagIgnored     = createTag(pIgnored.class + " minimalist", pIgnored.title, pIgnored.min, linkStore, Target);
+		// tagOther       = createTag(pIgnored.class + " minimalist", pIgnored.title, pIgnored.min, linkStore, Target);
 	}
 
 	if(/www.steamgifts.com\/giveaway\//.test(THIS_URL)) //only trigger inside giveaway page, no need for homepage
 	{
 		if(cbTagStyle == 1)
-			var tagHidden = createTag(ClassHidden, TitleHidden, TextHidden, linkHidden+Name, tagEarly);
+			tagHidden = createTag(pHidden.class, pHidden.title, pHidden.text, pHidden.link+Name, tagIgnored);
 		else if(cbTagStyle == 2)
-			var tagHidden = createTag(ClassHidden + " tags-minimalist", TitleHidden, "H", linkHidden+Name, Target);
+			tagHidden = createTag(pHidden.class + " minimalist", pHidden.title, pHidden.min, pHidden.link+Name, Target);
 
 		getHiddenStatus(ID, Name, tagHidden);
 	}
@@ -328,17 +430,24 @@ function ProcessTags(Target, URL, Name)
 	}
 
 	var type = isApp(URL) ? 'app' : 'sub';
-	if(cbBundled && BundledGames != "")
+	if(cbBundled && BundledGames !== "")
 		getBundleStatus(ID, type, tagBundle);
-	if(cbWishlist && UserdataAPI != "" && rgWishlist.length > 0)
-		getWishlistStatus(ID, tagWishlist);
+	if(UserdataAPI !== "")
+	{
+		if(cbWishlist)
+			getWishlistStatus(ID, tagWishlist);
+		if(cbOwned)
+			getOwnedStatus(ID, tagOwned, (type == 'app'));
+		if(cbIgnored)
+			getIgnoredStatus(ID, tagIgnored, (type == 'app'));
+	}
 }
 
 function createTag(_class, title, text, href, divTarget)
 {
 	var tag = document.createElement("a");
 	tag.setAttribute("target", "_blank");
-	tag.setAttribute("class", _class);
+	tag.setAttribute("class", "tags "+ _class);
 	tag.setAttribute("title", title);
 	tag.setAttribute("href", href);
 	tag.innerHTML = text;
@@ -358,7 +467,7 @@ function displayElems(elems)
 function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly, packID = "0")
 {
 	var needRequest = false;
-	if(GameData[appID] == undefined || GameData[appID].game == undefined)
+	if(GameData[appID] === undefined)
 	{
 		var template = {"cards": false, "achievement": false, "mac": false, "linux": false, "early_access": false, "last_checked": 0, "game": appID+""};
 		GameData[appID] = template;
@@ -370,14 +479,12 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 		if(cbCards && data.cards)
 		{
 			displayElems(tagCard);
-			if(GameData[appID].game != "0")
-				tagCard.setAttribute("href", linkCard+GameData[appID].game);
+			tagCard.setAttribute("href", pCard.link+GameData[appID].game);
 		}
 		if(cbAchievement && data.achievement)
 		{
 			displayElems(tagAchievement);
-			if(GameData[appID].game != "0")
-				tagAchievement.setAttribute("href", linkAchievement+GameData[appID].game+"/achievements/");
+			tagAchievement.setAttribute("href", pAchievement.link+GameData[appID].game+"/achievements/");
 		}
 		if(cbMac && data.mac) displayElems(tagMac);
 		if(cbLinux && data.linux) displayElems(tagLinux);
@@ -402,7 +509,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 			onload: function(data)
 			{
 				var obj = JSON.parse(data.responseText)[appID].data;
-				if(obj != undefined) // undefined = doesn't have store page or doesn't exist
+				if(obj !== undefined) // undefined = doesn't have store page or doesn't exist
 				// get steam apps categories : achievement, trading cards, etc
 				{
 					if(GameData[appID].last_checked === 0)
@@ -410,15 +517,15 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 						if (obj.type != "game")
 						{
 							GameData[appID].game = obj.fullgame.appid;
-							tagCard.setAttribute("href", linkCard+obj.fullgame.appid);
-							tagAchievement.setAttribute("href", linkAchievement+obj.fullgame.appid+"/achievements/");
+							tagCard.setAttribute("href", pCard.link+obj.fullgame.appid);
+							tagAchievement.setAttribute("href", pAchievement.link+obj.fullgame.appid+"/achievements/");
 						}
 						else if(packID != "0" && PackageData[packID].games.indexOf(appID) == -1)
 							PackageData[packID].games.push(appID);
 					}
 
 					var categories = obj.categories;
-					if(categories != undefined)
+					if(categories !== undefined)
 					{
 						var catCards = $.grep(categories, function(e){ return e.id == "29"; });
 						if(catCards.length > 0)
@@ -431,7 +538,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 								if(PackageData[packID].games.length > 1)
 									tagCard.setAttribute("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
 								else
-									tagCard.setAttribute("href", linkCard+PackageData[packID].games[0]);
+									tagCard.setAttribute("href", pCard.link+PackageData[packID].games[0]);
 							}
 						}
 
@@ -446,7 +553,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 								if(PackageData[packID].games.length > 1)
 									tagAchievement.setAttribute("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
 								else
-									tagAchievement.setAttribute("href", linkAchievement+PackageData[packID].games[0]+"/achievements/");
+									tagAchievement.setAttribute("href", pAchievement.link+PackageData[packID].games[0]+"/achievements/");
 							}
 						}
 					}
@@ -467,7 +574,7 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 					}
 
 					// get steam apps genres
-					if(obj.genres != undefined)
+					if(obj.genres !== undefined)
 					{
 						var genEarly = $.grep(obj.genres, function(e){ return e.id == "70"; });
 						if(genEarly.length > 0)
@@ -506,7 +613,7 @@ function getBundleStatus(appID, type, tag)
 	if(Game.length > 0) //game found in bundle list
 	{
 		displayElems(tag);
-		tag.setAttribute("title", TitleBundle+Game[0].BundledDate);
+		tag.setAttribute("title", pBundle.title+Game[0].BundledDate);
 	}
 }
 
@@ -524,18 +631,15 @@ function getBundleList()
 
 			BundledCache = Date.now();
 			GM_setValue("BundledCache", BundledCache);
- 			if(cbWishlist && UserdataCache < Date.now() - 6*60*60*1000) //6 hours
- 				getUserdata();
- 			else
-				main();
+
+			if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME)
+				getUserdata();
 		},
 		ontimeout: function(data)
 		{
 			console.log("[SG Game Tags] Request " + linkBundleAPI + " Timeout");
-			if(cbWishlist && UserdataCache < Date.now() - 6*60*60*1000) //6 hours
- 				getUserdata();
- 			else
-				main();
+			if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME)
+				getUserdata();
 		}
 	});
 }
@@ -559,7 +663,7 @@ function getUserdata()
 				GM_setValue("UserdataCache", UserdataCache);
 			}
 			else
-				console.log("[SG Game Tags] Unable to get wishlist data. User is not logged in to steam");
+				console.log("[SG Game Tags] Unable to get user's steam data. User is not logged in to steam.");
 
 			main();
 		},
@@ -575,8 +679,8 @@ function getHiddenStatus(appID, appName, elems)
 {
 	if(cbHidden)
 	{
-		// console.log("[SG Game Tags] requesting " + linkHidden+appName);
-		$.get(linkHidden+appName, function(data)
+		// console.log("[SG Game Tags] requesting " + pHidden.link+appName);
+		$.get(pHidden.link+appName, function(data)
 		{
 			var gamesfound = $(data).find("a.table__column__secondary-link");
 			for(i=0; i<$(gamesfound).length; i++)
@@ -601,10 +705,28 @@ function getWishlistStatus(appID, elems)
 		displayElems(elems);
 }
 
+function getOwnedStatus(appID, elems, isApp)
+{
+	appID = parseInt(appID);
+	if(isApp && rgOwnedApps.indexOf(appID) >= 0)
+		displayElems(elems);
+	else if(!isApp && rgOwnedPackages.indexOf(appID) >= 0)
+		displayElems(elems);
+}
+
+function getIgnoredStatus(appID, elems, isApp)
+{
+	appID = parseInt(appID);
+	if(isApp && rgIgnoredApps.indexOf(appID) >= 0)
+		displayElems(elems);
+	else if(!isApp && rgIgnoredPackages.indexOf(appID) >= 0)
+		displayElems(elems);
+}
+
 function getSteamCategoriesFromPackage(packID, tagCard, tagAchievement, tagLinux, tagMac, tagEarly)
 {
 	var needRequest = false;
-	if(PackageData[packID] == undefined || PackageData[packID].games == undefined)
+	if(PackageData[packID] === undefined || PackageData[packID].games === undefined)
 	{
 		var template = {"cards": false, "achievement": false, "mac": false, "linux": false, "early_access": false, "last_checked": 0, "games":[]};
 		PackageData[packID] = template;
@@ -622,7 +744,7 @@ function getSteamCategoriesFromPackage(packID, tagCard, tagAchievement, tagLinux
 				tagCard.setAttribute("title", "There is " + data.games.length + " games in this package, and at least one of them have trading cards");
 			}
 			else
-				tagCard.setAttribute("href", linkCard+data.games[0]);
+				tagCard.setAttribute("href", pCard.link+data.games[0]);
 		}
 		if(cbAchievement && data.achievement)
 		{
@@ -633,7 +755,7 @@ function getSteamCategoriesFromPackage(packID, tagCard, tagAchievement, tagLinux
 				tagAchievement.setAttribute("title", "There is " + data.games.length + " games in this package, and at least one of them have achievements");
 			}
 			else
-				tagAchievement.setAttribute("href", linkAchievement+data.games[0]+"/achievements/");
+				tagAchievement.setAttribute("href", pAchievement.link+data.games[0]+"/achievements/");
 		}
 		if(cbMac && data.mac) displayElems(tagMac);
 		if(cbLinux && data.linux) displayElems(tagLinux);
@@ -655,7 +777,7 @@ function getSteamCategoriesFromPackage(packID, tagCard, tagAchievement, tagLinux
 			onload: function(data)
 			{
 				var IDs = JSON.parse(data.responseText)[packID].data;
-				if(IDs == undefined)
+				if(IDs === undefined)
 				{
 					PackageData[packID].cards = false;
 					PackageData[packID].achievement = false;
@@ -714,47 +836,40 @@ function isPackage(link)
 
 
 // ========================================== create new giveaway page ========================================================
-function NewGiveawayDivUpdated(event)
+function InitGiveawayCreationPage()
 {
-	if(event.type == "DOMNodeInserted") //show bundle tag for shown game
+	if($(".js__autocomplete-data").length > 0)
 	{
-		var gamesfound = $(".table__row-inner-wrap");
-		$(".tags").remove();
-		$(".table__row-inner-wrap").each(function(index, element)
+		var observer = new MutationObserver(function(mutations)
 		{
-			var url = $(element).find("a.table__column__secondary-link").text();
-			var ID = getAppIDfromLink(url);
-			var Name = $(element).find(".table__column__heading").text();
-			var Target = $(element).find(".table__column--width-fill");
+			$(".tags").remove();
+			var table = $(mutations[0].addedNodes).find(".table__row-inner-wrap");
+			$(table).each(function(index, element)
+			{
+				var url = $(element).find("a.table__column__secondary-link").text();
+				var ID = getAppIDfromLink(url);
+				var Name = $(element).find(".table__column__heading").text();
+				var Target = $(element).find(".table__column--width-fill");
 
-			$(".js__autocomplete-data").off("DOMNodeInserted");
-			var tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
-			$(tagBundle).css("float", "right");
+				var tagBundle = createTag(pBundle.class, pBundle.title, pBundle.text, pBundle.link+Name, Target);
+				$(tagBundle).css("float", "right");
 
-			var type = isApp(url) ? 'app' : 'sub';
-			getBundleStatus(ID, type, tagBundle);
-		});
-		if(gamesfound.length > 0)
-		{
-			$(".js__autocomplete-data").on("DOMNodeRemoved", NewGiveawayDivUpdated);
-
-			$(".table__row-inner-wrap").on("click", function(event)
+				var type = isApp(url) ? 'app' : 'sub';
+				getBundleStatus(ID, type, tagBundle);
+			});
+			$(table).on("click", function(event)
 			{
 				var url = $(this).find("a.table__column__secondary-link").text();
 				var ID = getAppIDfromLink(url);
 				var Name = $(this).find(".table__column__heading").text();
 				var Target = $(".js__autocomplete-name")[0];
-				tagBundle = createTag(ClassBundle, TitleBundle, TextBundle, linkBundle+Name, Target);
+				tagBundle = createTag(pBundle.class, pBundle.title, pBundle.text, pBundle.link+Name, Target);
 				var type = isApp(url) ? 'app' : 'sub';
 				getBundleStatus(ID, type, tagBundle);
 			});
-		}
-	}
-	else if(event.type == "DOMNodeRemoved")//show / remove tag of selected game
-	{
-		$(".js__autocomplete-data").off("DOMNodeRemoved");
-		$(".table__row-inner-wrap").off("click");
-		$(".js__autocomplete-data").on("DOMNodeInserted", NewGiveawayDivUpdated);
+		});
+		var config = {childList: true, attributes: false, characterData: false};
+		observer.observe($(".js__autocomplete-data")[0], config);
 	}
 }
 
@@ -784,23 +899,27 @@ function initTagOnOffSetting(no)
 		var form__row__indent = document.createElement("div");
 		form__row__indent.setAttribute("class", "form__row__indent");
 
-			var form__checkbox_1 = createCheckBox("my__checkbox", CheckIcon + "Trading Cards", cbCards);
-			var form__checkbox_2 = createCheckBox("my__checkbox", CheckIcon + "Achievements", cbAchievement);
-			var form__checkbox_3 = createCheckBox("my__checkbox", CheckIcon + "Bundled", cbBundled);
-			var form__checkbox_4 = createCheckBox("my__checkbox", CheckIcon + "Hidden", cbHidden);
-			var form__checkbox_5 = createCheckBox("my__checkbox", CheckIcon + "Wishlist", cbWishlist);
-			var form__checkbox_6 = createCheckBox("my__checkbox", CheckIcon + "Linux", cbLinux);
-			var form__checkbox_7 = createCheckBox("my__checkbox", CheckIcon + "Mac", cbMac);
-			var form__checkbox_8 = createCheckBox("my__checkbox", CheckIcon + "Early Access", cbEarly);
+			var form__checkbox_1 = createCheckBox("my__checkbox", CheckIcon + pBundle.text, cbBundled);
+			var form__checkbox_2 = createCheckBox("my__checkbox", CheckIcon + pCard.text, cbCards);
+			var form__checkbox_3 = createCheckBox("my__checkbox", CheckIcon + pAchievement.text, cbAchievement);
+			var form__checkbox_4 = createCheckBox("my__checkbox", CheckIcon + pHidden.text, cbHidden);
+			var form__checkbox_5 = createCheckBox("my__checkbox", CheckIcon + pWishlist.text, cbWishlist);
+			var form__checkbox_6 = createCheckBox("my__checkbox", CheckIcon + pLinux.text, cbLinux);
+			var form__checkbox_7 = createCheckBox("my__checkbox", CheckIcon + pMac.text, cbMac);
+			var form__checkbox_8 = createCheckBox("my__checkbox", CheckIcon + pEarly.text, cbEarly);
+			var form__checkbox_9 = createCheckBox("my__checkbox", CheckIcon + pOwned.text, cbOwned);
+			var form__checkbox10 = createCheckBox("my__checkbox", CheckIcon + pIgnored.text, cbIgnored);
 
-			$(form__checkbox_1).click(function(){toggleCBTags(form__checkbox_1, "cbCards");});
-			$(form__checkbox_2).click(function(){toggleCBTags(form__checkbox_2, "cbAchievement");});
-			$(form__checkbox_3).click(function(){toggleCBTags(form__checkbox_3, "cbBundled");});
+			$(form__checkbox_1).click(function(){toggleCBTags(form__checkbox_1, "cbBundled");});
+			$(form__checkbox_2).click(function(){toggleCBTags(form__checkbox_2, "cbCards");});
+			$(form__checkbox_3).click(function(){toggleCBTags(form__checkbox_3, "cbAchievement");});
 			$(form__checkbox_4).click(function(){toggleCBTags(form__checkbox_4, "cbHidden");});
 			$(form__checkbox_5).click(function(){toggleCBTags(form__checkbox_5, "cbWishlist");});
 			$(form__checkbox_6).click(function(){toggleCBTags(form__checkbox_6, "cbLinux");});
 			$(form__checkbox_7).click(function(){toggleCBTags(form__checkbox_7, "cbMac");});
 			$(form__checkbox_8).click(function(){toggleCBTags(form__checkbox_8, "cbEarly");});
+			$(form__checkbox_9).click(function(){toggleCBTags(form__checkbox_9, "cbOwned");});
+			$(form__checkbox10).click(function(){toggleCBTags(form__checkbox10, "cbIgnored");});
 
 		$(form__row__indent)
 			.append(form__checkbox_1)
@@ -810,7 +929,9 @@ function initTagOnOffSetting(no)
 			.append(form__checkbox_5)
 			.append(form__checkbox_6)
 			.append(form__checkbox_7)
-			.append(form__checkbox_8);
+			.append(form__checkbox_8)
+			.append(form__checkbox_9)
+			.append(form__checkbox10);
 
 	$(form__row).append(form__heading).append(form__row__indent).insertBefore(".js__submit-form");
 
@@ -849,14 +970,16 @@ function initTagPositionSetting(no)
 					$(form__checkbox_1).removeClass("is-disabled").addClass("is-selected");
 					GM_setValue("cbTagStyle", 1);
 
-					$(".tags-bundle").text(TextBundle);
-					$(".tags-card").text(TextCard);
-					$(".tags-achievement").text(TextAchievement);
-					$(".tags-wishlist").text(TextWishlist);
-					$(".tags-linux").text(TextLinux);
-					$(".tags-mac").text(TextMac);
-					$(".tags-early").text(TextEarly);
-					$(".tags-hidden").text(TextHidden);
+					$("."+pBundle.class).text(pBundle.text);
+					$("."+pCard.class).text(pCard.text);
+					$("."+pAchievement.class).text(pAchievement.text);
+					$("."+pWishlist.class).text(pWishlist.text);
+					$("."+pLinux.class).text(pLinux.text);
+					$("."+pMac.class).text(pMac.text);
+					$("."+pEarly.class).text(pEarly.text);
+					$("."+pHidden.class).text(pHidden.text);
+					$("."+pOwned.class).text(pOwned.text);
+					$("."+pIgnored.class).text(pIgnored.text);
 				}
 			);
 			$(form__checkbox_2).click(
@@ -865,10 +988,17 @@ function initTagPositionSetting(no)
 					$(form__checkbox_1).removeClass("is-selected").addClass("is-disabled");
 					$(form__checkbox_2).removeClass("is-disabled").addClass("is-selected");
 					GM_setValue("cbTagStyle", 2);
-					$(".row .tags").each(function(index, element)
-					{
-						$(element).text($(element).text().substring(0,1));
-					});
+
+					$("."+pBundle.class).text(pBundle.min);
+					$("."+pCard.class).text(pCard.min);
+					$("."+pAchievement.class).text(pAchievement.min);
+					$("."+pWishlist.class).text(pWishlist.min);
+					$("."+pLinux.class).text(pLinux.min);
+					$("."+pMac.class).text(pMac.min);
+					$("."+pEarly.class).text(pEarly.min);
+					$("."+pHidden.class).text(pHidden.min);
+					$("."+pOwned.class).text(pOwned.min);
+					$("."+pIgnored.class).text(pIgnored.min);
 				}
 			);
 
@@ -912,6 +1042,10 @@ function toggleCBTags(cbElems, cbName)
 		cbValue = cbMac = !cbMac;
 	else if(cbName == "cbEarly")
 		cbValue = cbEarly = !cbEarly;
+	else if(cbName == "cbOwned")
+		cbValue = cbOwned = !cbOwned;
+	else if(cbName == "cbIgnored")
+		cbValue = cbIgnored = !cbIgnored;
 
 	GM_setValue(cbName, cbValue);
 	if(cbValue)
@@ -953,49 +1087,61 @@ function initTagColorSetting(no)
 					<input type="text" class="colorpicker" id="bundle-1"/> \
 					<input type="text" class="colorpicker" id="bundle-2"/> \
 					<div class="markdown"><a class="default_bundle">Default</a></div> \
-					<div class="preview-tags"><a class="tags tags-bundle" style="display: inline-block;">Bundled</a></div> \
+					<div class="preview-tags"><a class="tags ' + pBundle.class + '" style="display: inline-block;">' + pBundle.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="card-1"/> \
 					<input type="text" class="colorpicker" id="card-2"/> \
 					<div class="markdown"><a class="default_card">Default</a></div> \
-					<div class="preview-tags"><a class="tags tags-card" style="display: inline-block;">Trading Card</a></div> \
+					<div class="preview-tags"><a class="tags ' + pCard.class + '" style="display: inline-block;">' + pCard.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="achievement-1"/> \
 					<input type="text" class="colorpicker" id="achievement-2"/> \
 					<div class="markdown"><a class="default_achievement">Default</a></div> \
-					<div class="preview-tags"><a class="tags tags-achievement" style="display: inline-block;">Achievements</a></div> \
+					<div class="preview-tags"><a class="tags ' + pAchievement.class + '" style="display: inline-block;">' + pAchievement.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="wishlist-1"/> \
 					<input type="text" class="colorpicker" id="wishlist-2"/> \
 					<div class="markdown"><a class="default_wishlist">Default</a></div> \
-					<div class="preview-tags"><a class="tags tags-wishlist" style="display: inline-block;">Wishlist</a></div> \
-				</div> \
-				<div class="row"> \
-					<input type="text" class="colorpicker" id="linux-1"/> \
-					<input type="text" class="colorpicker" id="linux-2"/> \
-					<div class="markdown"><a class="default_linux">Default</a></div> \
-					<div class="preview-tags"><a class="tags tags-linux" style="display: inline-block;">Linux</a></div> \
-				</div> \
-				<div class="row"> \
-					<input type="text" class="colorpicker" id="mac-1"/> \
-					<input type="text" class="colorpicker" id="mac-2"/> \
-					<div class="markdown"><a class="default_mac">Default</a></div> \
-					<div class="preview-tags"><a class="tags tags-mac" style="display: inline-block;">Mac</a></div> \
-				</div> \
-				<div class="row"> \
-					<input type="text" class="colorpicker" id="early-1"/> \
-					<input type="text" class="colorpicker" id="early-2"/> \
-					<div class="markdown"><a class="default_early">Default</a></div> \
-					<div class="preview-tags"><a class="tags tags-early" style="display: inline-block;">Early Access</a></div> \
+					<div class="preview-tags"><a class="tags ' + pWishlist.class + '" style="display: inline-block;">' + pWishlist.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="hidden-1"/> \
 					<input type="text" class="colorpicker" id="hidden-2"/> \
 					<div class="markdown"><a class="default_hidden">Default</a></div> \
-					<div class="preview-tags"><a class="tags tags-hidden" style="display: inline-block;">Hidden</a></div> \
+					<div class="preview-tags"><a class="tags ' + pHidden.class + '" style="display: inline-block;">' + pHidden.text + '</a></div> \
+				</div> \
+				<div class="row"> \
+					<input type="text" class="colorpicker" id="linux-1"/> \
+					<input type="text" class="colorpicker" id="linux-2"/> \
+					<div class="markdown"><a class="default_linux">Default</a></div> \
+					<div class="preview-tags"><a class="tags ' + pLinux.class + '" style="display: inline-block;">' + pLinux.text + '</a></div> \
+				</div> \
+				<div class="row"> \
+					<input type="text" class="colorpicker" id="mac-1"/> \
+					<input type="text" class="colorpicker" id="mac-2"/> \
+					<div class="markdown"><a class="default_mac">Default</a></div> \
+					<div class="preview-tags"><a class="tags ' + pMac.class + '" style="display: inline-block;">' + pMac.text + '</a></div> \
+				</div> \
+				<div class="row"> \
+					<input type="text" class="colorpicker" id="early-1"/> \
+					<input type="text" class="colorpicker" id="early-2"/> \
+					<div class="markdown"><a class="default_early">Default</a></div> \
+					<div class="preview-tags"><a class="tags ' + pEarly.class + '" style="display: inline-block;">' + pEarly.text + '</a></div> \
+				</div> \
+				<div class="row"> \
+					<input type="text" class="colorpicker" id="owned-1"/> \
+					<input type="text" class="colorpicker" id="owned-2"/> \
+					<div class="markdown"><a class="default_owned">Default</a></div> \
+					<div class="preview-tags"><a class="tags ' + pOwned.class + '" style="display: inline-block;">' + pOwned.text + '</a></div> \
+				</div> \
+				<div class="row"> \
+					<input type="text" class="colorpicker" id="other-1"/> \
+					<input type="text" class="colorpicker" id="other-2"/> \
+					<div class="markdown"><a class="default_other">Default</a></div> \
+					<div class="preview-tags"><a class="tags ' + pIgnored.class + '" style="display: inline-block;">' + pIgnored.text + '</a></div> \
 				</div> \
 				<div class="form__input-description">No need to press Save Changes button. It is automatically saved when colorpicker closed.</div>\
 			</div> \
@@ -1005,37 +1151,49 @@ function initTagColorSetting(no)
 
 	if(cbTagStyle == 2) // change tags if minimalist selected
 	{
-		$(".row .tags").each(function(index, element)
-		{
-			$(element).text($(element).text().substring(0,1));
-		});
+		$("."+pBundle.class).text(pBundle.min);
+		$("."+pCard.class).text(pCard.min);
+		$("."+pAchievement.class).text(pAchievement.min);
+		$("."+pWishlist.class).text(pWishlist.min);
+		$("."+pLinux.class).text(pLinux.min);
+		$("."+pMac.class).text(pMac.min);
+		$("."+pEarly.class).text(pEarly.min);
+		$("."+pHidden.class).text(pHidden.min);
+		$("."+pOwned.class).text(pOwned.min);
+		$("."+pIgnored.class).text(pIgnored.min);
 	}
 
-	initColorpicker("bundle-1", GM_getValue("bundle-1", default_bundle), "tags-bundle", "background-color");
-	initColorpicker("bundle-2", GM_getValue("bundle-2", "#FFFFFF"), "tags-bundle", "color");
-	initColorpicker("card-1", GM_getValue("card-1", default_card), "tags-card", "background-color");
-	initColorpicker("card-2", GM_getValue("card-2", "#FFFFFF"), "tags-card", "color");
-	initColorpicker("achievement-1", GM_getValue("achievement-1", default_achievement), "tags-achievement", "background-color");
-	initColorpicker("achievement-2", GM_getValue("achievement-2", "#FFFFFF"), "tags-achievement", "color");
-	initColorpicker("wishlist-1", GM_getValue("wishlist-1", default_wishlist), "tags-wishlist", "background-color");
-	initColorpicker("wishlist-2", GM_getValue("wishlist-2", "#FFFFFF"), "tags-wishlist", "color");
-	initColorpicker("linux-1", GM_getValue("linux-1", default_linux), "tags-linux", "background-color");
-	initColorpicker("linux-2", GM_getValue("linux-2", "#FFFFFF"), "tags-linux", "color");
-	initColorpicker("mac-1", GM_getValue("mac-1", default_mac), "tags-mac", "background-color");
-	initColorpicker("mac-2", GM_getValue("mac-2", "#FFFFFF"), "tags-mac", "color");
-	initColorpicker("early-1", GM_getValue("early-1", default_early), "tags-early", "background-color");
-	initColorpicker("early-2", GM_getValue("early-2", "#FFFFFF"), "tags-early", "color");
-	initColorpicker("hidden-1", GM_getValue("hidden-1", default_hidden), "tags-hidden", "background-color");
-	initColorpicker("hidden-2", GM_getValue("hidden-2", "#FFFFFF"), "tags-hidden", "color");
+	initColorpicker("bundle-1", GM_getValue("bundle-1", pBundle.color1), pBundle.class, "background-color");
+	initColorpicker("bundle-2", GM_getValue("bundle-2", pBundle.color2), pBundle.class, "color");
+	initColorpicker("card-1", GM_getValue("card-1", pCard.color1), pCard.class, "background-color");
+	initColorpicker("card-2", GM_getValue("card-2", pCard.color2), pCard.class, "color");
+	initColorpicker("achievement-1", GM_getValue("achievement-1", pAchievement.color1), pAchievement.class, "background-color");
+	initColorpicker("achievement-2", GM_getValue("achievement-2", pAchievement.color2), pAchievement.class, "color");
+	initColorpicker("wishlist-1", GM_getValue("wishlist-1", pWishlist.color1), pWishlist.class, "background-color");
+	initColorpicker("wishlist-2", GM_getValue("wishlist-2", pWishlist.color2), pWishlist.class, "color");
+	initColorpicker("linux-1", GM_getValue("linux-1", pLinux.color1), pLinux.class, "background-color");
+	initColorpicker("linux-2", GM_getValue("linux-2", pLinux.color2), pLinux.class, "color");
+	initColorpicker("mac-1", GM_getValue("mac-1", pMac.color1), pMac.class, "background-color");
+	initColorpicker("mac-2", GM_getValue("mac-2", pMac.color2), pMac.class, "color");
+	initColorpicker("early-1", GM_getValue("early-1", pEarly.color1), pEarly.class, "background-color");
+	initColorpicker("early-2", GM_getValue("early-2", pEarly.color2), pEarly.class, "color");
+	initColorpicker("hidden-1", GM_getValue("hidden-1", pHidden.color1), pHidden.class, "background-color");
+	initColorpicker("hidden-2", GM_getValue("hidden-2", pHidden.color2), pHidden.class, "color");
+	initColorpicker("owned-1", GM_getValue("owned-1", pOwned.color1), pOwned.class, "background-color");
+	initColorpicker("owned-2", GM_getValue("owned-2", pOwned.color2), pOwned.class, "color");
+	initColorpicker("other-1", GM_getValue("other-1", pIgnored.color1), pIgnored.class, "background-color");
+	initColorpicker("other-2", GM_getValue("other-2", pIgnored.color2), pIgnored.class, "color");
 
-	$(".default_bundle").click(function(){clickDefaultColor("bundle", default_bundle);});
-	$(".default_card").click(function(){clickDefaultColor("card", default_card);});
-	$(".default_achievement").click(function(){clickDefaultColor("achievement", default_achievement);});
-	$(".default_wishlist").click(function(){clickDefaultColor("wishlist", default_wishlist);});
-	$(".default_linux").click(function(){clickDefaultColor("linux", default_linux);});
-	$(".default_mac").click(function(){clickDefaultColor("mac", default_mac);});
-	$(".default_early").click(function(){clickDefaultColor("early", default_early);});
-	$(".default_hidden").click(function(){clickDefaultColor("hidden", default_hidden);});
+	$(".default_bundle").click(function(){clickDefaultColor("bundle", pBundle);});
+	$(".default_card").click(function(){clickDefaultColor("card", pCard);});
+	$(".default_achievement").click(function(){clickDefaultColor("achievement", pAchievement);});
+	$(".default_wishlist").click(function(){clickDefaultColor("wishlist", pWishlist);});
+	$(".default_linux").click(function(){clickDefaultColor("linux", pLinux);});
+	$(".default_mac").click(function(){clickDefaultColor("mac", pMac);});
+	$(".default_early").click(function(){clickDefaultColor("early", pEarly);});
+	$(".default_hidden").click(function(){clickDefaultColor("hidden", pHidden);});
+	$(".default_owned").click(function(){clickDefaultColor("owned", pOwned);});
+	$(".default_other").click(function(){clickDefaultColor("other", pIgnored);});
 }
 
 function initColorpicker(id, currentColor, tag, property)
@@ -1049,7 +1207,7 @@ function initColorpicker(id, currentColor, tag, property)
 		localStorageKey: "spectrum.sggametags",
 		maxSelectionSize: 8,
 		palette: [
-			[default_bundle, default_card, default_achievement, default_wishlist, default_linux, default_mac, default_early, default_hidden],
+			[pBundle.color1, pCard.color1, pAchievement.color1, pWishlist.color1, pHidden.color1, pLinux.color1, pMac.color1, pEarly.color1, pOwned.color1, pIgnored.color1],
 			["#000","#444","#666","#999","#ccc","#eee","#f3f3f3","#fff"],
 			["#f00","#f90","#ff0","#0f0","#0ff","#00f","#90f","#f0f"],
 			["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
@@ -1068,13 +1226,13 @@ function initColorpicker(id, currentColor, tag, property)
 	});
 }
 
-function clickDefaultColor(name, defaultvalue)
+function clickDefaultColor(name, tagprop)
 {
-	GM_setValue(name+"-1", defaultvalue);
-	GM_setValue(name+"-2", "#FFFFFF");
-	$(".tags-"+name).css("background-color", defaultvalue).css("color", "#FFFFFF");
-	$("#"+name+"-1").spectrum("set", defaultvalue);
-	$("#"+name+"-2").spectrum("set", "#FFFFFF");
+	GM_setValue(name+"-1", tagprop.color1);
+	GM_setValue(name+"-2", tagprop.color2);
+	$("."+tagprop.class).css("background-color", tagprop.color1).css("color", tagprop.color2);
+	$("#"+name+"-1").spectrum("set", tagprop.color1);
+	$("#"+name+"-2").spectrum("set", tagprop.color2);
 }
 
 // ==================================================================================================

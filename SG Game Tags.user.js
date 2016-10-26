@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.3.2
+// @version      3.3.3
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -1071,6 +1071,7 @@ function initTagColorSetting(no)
 		<style type="text/css"> \
 			.row div { display: inline-block; } \
 			.preview-tags { width: 80px; margin-left: 10px; } \
+			.preview-tags a { display: inline-block; cursor: default; } \
 			.row .markdown {margin-left: 10px; cursor: pointer; }\
 		</style> \
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css" />';
@@ -1087,61 +1088,61 @@ function initTagColorSetting(no)
 					<input type="text" class="colorpicker" id="bundle-1"/> \
 					<input type="text" class="colorpicker" id="bundle-2"/> \
 					<div class="markdown"><a class="default_bundle">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pBundle.class + '" style="display: inline-block;">' + pBundle.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pBundle.class + '" title="' + pBundle.text + '">' + pBundle.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="card-1"/> \
 					<input type="text" class="colorpicker" id="card-2"/> \
 					<div class="markdown"><a class="default_card">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pCard.class + '" style="display: inline-block;">' + pCard.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pCard.class + '" title="' + pCard.text + '">' + pCard.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="achievement-1"/> \
 					<input type="text" class="colorpicker" id="achievement-2"/> \
 					<div class="markdown"><a class="default_achievement">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pAchievement.class + '" style="display: inline-block;">' + pAchievement.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pAchievement.class + '" title="' + pAchievement.text + '">' + pAchievement.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="wishlist-1"/> \
 					<input type="text" class="colorpicker" id="wishlist-2"/> \
 					<div class="markdown"><a class="default_wishlist">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pWishlist.class + '" style="display: inline-block;">' + pWishlist.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pWishlist.class + '" title="' + pWishlist.text + '">' + pWishlist.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="hidden-1"/> \
 					<input type="text" class="colorpicker" id="hidden-2"/> \
 					<div class="markdown"><a class="default_hidden">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pHidden.class + '" style="display: inline-block;">' + pHidden.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pHidden.class + '" title="' + pHidden.text + '">' + pHidden.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="linux-1"/> \
 					<input type="text" class="colorpicker" id="linux-2"/> \
 					<div class="markdown"><a class="default_linux">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pLinux.class + '" style="display: inline-block;">' + pLinux.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pLinux.class + '" title="' + pLinux.text + '">' + pLinux.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="mac-1"/> \
 					<input type="text" class="colorpicker" id="mac-2"/> \
 					<div class="markdown"><a class="default_mac">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pMac.class + '" style="display: inline-block;">' + pMac.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pMac.class + '" title="' + pMac.text + '">' + pMac.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="early-1"/> \
 					<input type="text" class="colorpicker" id="early-2"/> \
 					<div class="markdown"><a class="default_early">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pEarly.class + '" style="display: inline-block;">' + pEarly.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pEarly.class + '" title="' + pEarly.text + '">' + pEarly.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="owned-1"/> \
 					<input type="text" class="colorpicker" id="owned-2"/> \
 					<div class="markdown"><a class="default_owned">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pOwned.class + '" style="display: inline-block;">' + pOwned.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pOwned.class + '" title="' + pOwned.text + '">' + pOwned.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="other-1"/> \
 					<input type="text" class="colorpicker" id="other-2"/> \
 					<div class="markdown"><a class="default_other">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pIgnored.class + '" style="display: inline-block;">' + pIgnored.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pIgnored.class + '" title="' + pIgnored.text + '">' + pIgnored.text + '</a></div> \
 				</div> \
 				<div class="form__input-description">No need to press Save Changes button. It is automatically saved when colorpicker closed.</div>\
 			</div> \

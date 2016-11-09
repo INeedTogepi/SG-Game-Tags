@@ -647,12 +647,16 @@ function getBundleList()
 
 			if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME)
 				getUserdata();
+			else
+				main();
 		},
 		ontimeout: function(data)
 		{
 			console.log("[SG Game Tags] Request " + linkBundleAPI + " Timeout");
 			if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME)
 				getUserdata();
+			else
+				main();
 		}
 	});
 }

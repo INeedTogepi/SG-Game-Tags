@@ -1,3 +1,8 @@
+3.4
+- Newer version of JQuery (from 2.1.4 to 2.2.4)
+- Moved setting page to www.steamgifts.com/sg-game-tags
+- Added link to SG Game Tags setting in sidebar account setting
+
 3.3
 - Optimized filter from gameAPI if game is saved
 - Changed DomNodeInserted event to MutationObserver

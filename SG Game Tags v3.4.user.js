@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.3.8
+// @version      3.4
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
 // @icon         https://cdn.steamgifts.com/img/favicon.ico
 // @connect      steampowered.com
 // @connect      ruphine.esy.es
-// @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
+// @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js
 // @grant        GM_deleteValue
 // @grant        GM_getValue
@@ -128,12 +128,6 @@ const myCSS = '\
 		margin-right: 0; \
 		margin-left: 5px; \
 	} \
-	.my__checkbox { cursor:pointer; padding:7px 0; } \
-	.my__checkbox i { margin-right:7px; } \
-	.my__checkbox:not(:last-of-type) { border-bottom:1px dotted #d2d6e0; } \
-	.my__checkbox:not(:hover) .form__checkbox__hover,.my__checkbox.is-selected .form__checkbox__hover,.my__checkbox:not(.is-selected) .form__checkbox__selected,.my__checkbox:hover .form__checkbox__default,.my__checkbox.is-selected .form__checkbox__default { \
-		display:none; \
-	} \
 	.' + pBundle.class + ' { \
 		background-color: ' + GM_getValue("bundle-1", pBundle.color1) + '; \
 		color: ' + GM_getValue("bundle-2", pBundle.color2) + '; \
@@ -249,7 +243,17 @@ function main()
 	var config = {childList: true, attributes: false, characterData: false, subtree: true};
 	if(/www.steamgifts.com\/giveaways\/new/.test(THIS_URL)) // process giveaway creation page
 		InitGiveawayCreationPage();
-	else if(/www.steamgifts.com\/account\/settings\/giveaways$/.test(THIS_URL)) // process giveaway setting page
+	else if(/www.steamgifts.com\/account\/*/.test(THIS_URL))
+	{
+		var sidebar_item = '<li class="sidebar__navigation__item">\
+								<a class="sidebar__navigation__item__link" href="/sg-game-tags">\
+									<div class="sidebar__navigation__item__name">SG Game Tags</div>\
+									<div class="sidebar__navigation__item__underline"></div>\
+								</a>\
+							</li>';
+		$($(".sidebar__navigation")[2]).append(sidebar_item);
+	}
+	else if(/www.steamgifts.com\/sg-game-tags/.test(THIS_URL)) // process giveaway setting page
 		initSetting();
 	else if(/www.steamgifts.com\/($|giveaways$|giveaways\/search)/.test(THIS_URL)) // homepage and all search active giveaway
 	{
@@ -331,7 +335,7 @@ function ProcessGiveawayListPage(parent) // giveaways list with creator name
 	{
 		$(parent).find(".giveaway__row-inner-wrap").each(function(index, element)
 		{
-			var URL = $(element).find("a.giveaway__icon").attr("href");
+			var URL = $(element).find(".giveaway__heading>a.giveaway__icon").attr("href");
 			if(URL !== undefined)
 			{
 				var Name = $(element).find(".giveaway__heading__name").contents().filter(
@@ -647,16 +651,16 @@ function getBundleList()
 
 			if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME)
 				getUserdata();
-			else
-				main();
+            else
+                main();
 		},
 		ontimeout: function(data)
 		{
 			console.log("[SG Game Tags] Request " + linkBundleAPI + " Timeout");
 			if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME)
 				getUserdata();
-			else
-				main();
+            else
+                main();
 		}
 	});
 }
@@ -891,14 +895,111 @@ function InitGiveawayCreationPage()
 // ========================================== setting page ========================================================
 function initSetting()
 {
-	var no = $(".form__heading").length + 1;
-	initTagOnOffSetting(no);
-	initTagPositionSetting(no+1);
-	initTagColorSetting(no+2);
+	$("head").html('\
+		<meta charset="UTF-8">\
+		<link rel="shortcut icon" href="https://cdn.steamgifts.com/img/favicon.ico">\
+		<title>SG Game Tags Setting</title>\
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">\
+		<link rel="stylesheet" type="text/css" href="https://cdn.steamgifts.com/css/minified_v18.css">\
+		<script src="https://cdn.steamgifts.com/js/minified_v15.js"></script>\
+		<meta name="viewport" content="width=1200">\
+		<!-- SGGT Import -->\
+		<style type="text/css">\
+			.my__checkbox { cursor:pointer; padding:7px 0; } \
+			.my__checkbox i { margin-right:7px; } \
+			.my__checkbox:not(:last-of-type) { border-bottom:1px dotted #d2d6e0; } \
+			.my__checkbox:not(:hover) .form__checkbox__hover,.my__checkbox.is-selected .form__checkbox__hover,.my__checkbox:not(.is-selected) .form__checkbox__selected,.my__checkbox:hover .form__checkbox__default,.my__checkbox.is-selected .form__checkbox__default { \
+				display:none; \
+			} \
+			.row div { display: inline-block; } \
+			.preview-tags { width: 80px; margin-left: 10px; } \
+			.row .markdown {margin-left: 10px; cursor: pointer; }\
+		</style>\
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css" />\
+	');
+	$("head").append('<style type="text/css">' + myCSS + '</style>');
+	$("body").html("");
+
+	GM_xmlhttpRequest({
+		method: "GET",
+		timeout: 10000,
+		url: "/account/settings/giveaways",
+		dataType: "html",
+		onload: function(data){
+			var header = $(data.responseText).filter("header");
+			var page_outer = $(data.responseText).filter(".page__outer-wrap");
+			var footer_outer = $(data.responseText).filter(".footer__outer-wrap");
+
+			$(page_outer).find("form").remove();
+			$(page_outer).find(".sidebar__navigation .is-selected").removeClass("is-selected").find("a i").remove();
+			var sidebar_item = '<li class="sidebar__navigation__item is-selected">\
+									<a class="sidebar__navigation__item__link" href="/sg-game-tags">\
+										<i class="fa fa-caret-right"></i>\
+										<div class="sidebar__navigation__item__name">SG Game Tags</div>\
+										<div class="sidebar__navigation__item__underline"></div>\
+									</a>\
+								</li>';
+			$($(page_outer).find(".sidebar__navigation")[2]).append(sidebar_item);
+
+			$("body").append(header).append(page_outer).append(footer_outer);
+
+			var form__rows = document.createElement("div");
+			$(form__rows).addClass("form__rows");
+			$(".page__heading").after(form__rows);
+
+			initTagPositionSetting();
+			initTagOnOffSetting();
+			initTagColorSetting();
+			changeCBColor();
+			AddShortcutToSettingPage();
+		},
+		ontimeout: function(){
+			console.log("timeout");
+		}
+	});
 }
 
-function initTagOnOffSetting(no)
+function initTagPositionSetting()
 {
+	var no = $(".form__heading").length + 1;
+	var CheckIcon = '<i class="form__checkbox__default fa fa-circle-o"></i><i class="form__checkbox__hover fa fa-circle"></i><i class="form__checkbox__selected fa fa-check-circle"></i>';
+	var form__row = document.createElement("div");
+	form__row.setAttribute("class", "form__row");
+
+		var form__heading =' \
+			<div class="form__heading"> \
+				<div class="form__heading__number">' + no + '.</div> \
+				<div class="form__heading__text" title="This setting doesn\'t affect performance, only visual change."> Tags Style </div> \
+			</div>';
+
+		var form__row__indent = document.createElement("div");
+		form__row__indent.setAttribute("class", "form__row__indent");
+			var form__checkbox_1 = createCheckBox("form__checkbox", CheckIcon + "(Original) Full Text tags below game title", cbTagStyle == 1);
+			var form__checkbox_2 = createCheckBox("form__checkbox", CheckIcon + "(Minimalist) One letter tags beside game title", cbTagStyle == 2);
+
+			form__checkbox_1.setAttribute("title", 'The tags will display "Trading Cards", "Bundled", etc. This option will increase page height.');
+			form__checkbox_2.setAttribute("title", 'The tags will just display first letter. "Trading Cards" becomes "T", "Bundled" becomes "B", etc.');
+
+			$(form__checkbox_1).click(function()
+			{
+				GM_setValue("cbTagStyle", 1);
+				toggleMinimalist(false);
+			});
+			$(form__checkbox_2).click(function()
+			{
+				GM_setValue("cbTagStyle", 2);
+				toggleMinimalist();
+			});
+
+		$(form__row__indent).append(form__checkbox_1).append(form__checkbox_2);
+
+	$(form__row).append(form__heading).append(form__row__indent);
+	$(".form__rows").append(form__row);
+}
+
+function initTagOnOffSetting()
+{
+	var no = $(".form__heading").length + 1;
 	var CheckIcon = '<i class="form__checkbox__default fa fa-circle-o"></i><i class="form__checkbox__hover fa fa-circle"></i><i class="form__checkbox__selected fa fa-check-circle"></i>';
 	var form__row = document.createElement("div");
 	form__row.setAttribute("class", "form__row");
@@ -906,9 +1007,7 @@ function initTagOnOffSetting(no)
 		var form__heading = ' \
 			<div class="form__heading"> \
 				<div class="form__heading__number">' + no + '.</div> \
-				<div class="form__heading__text" title="If you have performance issues, try disable tags you don\'t need"> \
-					[SG Game Tags] Which tags do you want to see? \
-				</div> \
+				<div class="form__heading__text" title="If you have performance issues, try disable tags you don\'t need"> Enable/Disable Tags </div> \
 			</div>';
 
 		var form__row__indent = document.createElement("div");
@@ -948,59 +1047,8 @@ function initTagOnOffSetting(no)
 			.append(form__checkbox_9)
 			.append(form__checkbox10);
 
-	$(form__row).append(form__heading).append(form__row__indent).insertBefore(".js__submit-form");
-
-	var desc = '<div class="form__input-description">No need to press Save Changes button. It is automatically saved when the value changed.</div>';
-	$(form__row__indent).append(desc);
-
-	changeCBColor();
-}
-
-function initTagPositionSetting(no)
-{
-	var CheckIcon = '<i class="form__checkbox__default fa fa-circle-o"></i><i class="form__checkbox__hover fa fa-circle"></i><i class="form__checkbox__selected fa fa-check-circle"></i>';
-	var form__row = document.createElement("div");
-	form__row.setAttribute("class", "form__row");
-
-		var form__heading =' \
-			<div class="form__heading"> \
-				<div class="form__heading__number">' + no + '.</div> \
-				<div class="form__heading__text" title="This setting doesn\'t affect performance, only visual change."> \
-					[SG Game Tags] Tags Style \
-				</div> \
-			</div>';
-
-		var form__row__indent = document.createElement("div");
-		form__row__indent.setAttribute("class", "form__row__indent");
-			var form__checkbox_1 = createCheckBox("form__checkbox", CheckIcon + "(Original) Full Text tags below game title", cbTagStyle == 1);
-			var form__checkbox_2 = createCheckBox("form__checkbox", CheckIcon + "(Minimalist) One letter tags beside game title", cbTagStyle == 2);
-
-			form__checkbox_1.setAttribute("title", 'The tags will display "Trading Cards", "Bundled", etc. This option will increase page height.');
-			form__checkbox_2.setAttribute("title", 'The tags will just display first letter. "Trading Cards" becomes "T", "Bundled" becomes "B", etc.');
-
-			$(form__checkbox_1).click(function()
-			{
-				$(form__checkbox_2).removeClass("is-selected").addClass("is-disabled");
-				$(form__checkbox_1).removeClass("is-disabled").addClass("is-selected");
-				GM_setValue("cbTagStyle", 1);
-
-				
-			});
-			$(form__checkbox_2).click(function()
-			{
-				$(form__checkbox_1).removeClass("is-selected").addClass("is-disabled");
-				$(form__checkbox_2).removeClass("is-disabled").addClass("is-selected");
-				GM_setValue("cbTagStyle", 2);
-
-				toggleMinimalist();
-			});
-
-		$(form__row__indent).append(form__checkbox_1).append(form__checkbox_2);
-
-	$(form__row).append(form__heading).append(form__row__indent).insertBefore(".js__submit-form");
-
-	var desc = '<div class="form__input-description">No need to press Save Changes button. It is automatically saved when the value changed.</div>';
-	$(form__row__indent).append(desc);
+	$(form__row).append(form__heading).append(form__row__indent);
+	$(".form__rows").append(form__row);
 }
 
 function createCheckBox(_class, _html, cbValue)
@@ -1040,12 +1088,12 @@ function toggleCBTags(cbElems, cbName)
 	else if(cbName == "cbIgnored")
 		cbValue = cbIgnored = !cbIgnored;
 
-	GM_setValue(cbName, cbValue);
 	if(cbValue)
 		$(cbElems).removeClass("is-disabled").addClass("is-selected");
 	else
 		$(cbElems).removeClass("is-selected").addClass("is-disabled");
 
+	GM_setValue(cbName, cbValue);
 	changeCBColor();
 }
 
@@ -1053,27 +1101,18 @@ function changeCBColor()
 {
 	var colorCBDisabled = $(".form__checkbox.is-disabled").css("color");
 	var colorCBSelected = $(".form__checkbox.is-selected").css("color");
-
 	$(".my__checkbox.is-disabled").css("color", colorCBDisabled);
 	$(".my__checkbox.is-selected").css("color", colorCBSelected);
 }
 
-function initTagColorSetting(no)
+function initTagColorSetting()
 {
-	var require = ' \
-		<style type="text/css"> \
-			.row div { display: inline-block; } \
-			.preview-tags { width: 80px; margin-left: 10px; } \
-			.row .markdown {margin-left: 10px; cursor: pointer; }\
-		</style> \
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css" />';
-	$("head").append(require);
-
+	var no = $(".form__heading").length + 1;
 	var form__row = ' \
 		<div class="form__row"> \
 			<div class="form__heading"> \
 				<div class="form__heading__number">' + no + '.</div> \
-				<div class="form__heading__text">[SG Game Tags] Customized tags color</div> \
+				<div class="form__heading__text" title="This setting doesn\'t affect performance, only visual change.">Customize tags color</div> \
 			</div> \
 			<div class="form__row__indent"> \
 				<div class="row"> \
@@ -1136,46 +1175,45 @@ function initTagColorSetting(no)
 					<div class="markdown"><a class="default_other">Default</a></div> \
 					<div class="preview-tags"><a class="tags ' + pIgnored.class + '" style="display: inline-block;">' + pIgnored.text + '</a></div> \
 				</div> \
-				<div class="form__input-description">No need to press Save Changes button. It is automatically saved when colorpicker closed.</div>\
 			</div> \
 		</div>';
 
-	$(form__row).insertBefore(".js__submit-form");
+	$(".form__rows").append(form__row);
 
 	if(cbTagStyle == 2) // change tags if minimalist selected
 		toggleMinimalist();
 
-	initColorpicker("bundle-1",			GM_getValue("bundle-1", pBundle.color1),			pBundle.class,		"background-color");
-	initColorpicker("bundle-2",			GM_getValue("bundle-2", pBundle.color2),			pBundle.class,		"color");
-	initColorpicker("card-1",			GM_getValue("card-1", pCard.color1),				pCard.class,		"background-color");
-	initColorpicker("card-2",			GM_getValue("card-2", pCard.color2),				pCard.class,		"color");
-	initColorpicker("achievement-1",	GM_getValue("achievement-1", pAchievement.color1),	pAchievement.class,	"background-color");
-	initColorpicker("achievement-2",	GM_getValue("achievement-2", pAchievement.color2),	pAchievement.class,	"color");
-	initColorpicker("wishlist-1",		GM_getValue("wishlist-1", pWishlist.color1),		pWishlist.class,	"background-color");
-	initColorpicker("wishlist-2",		GM_getValue("wishlist-2", pWishlist.color2),		pWishlist.class,	"color");
-	initColorpicker("linux-1",			GM_getValue("linux-1", pLinux.color1),				pLinux.class,		"background-color");
-	initColorpicker("linux-2",			GM_getValue("linux-2", pLinux.color2),				pLinux.class,		"color");
-	initColorpicker("mac-1",			GM_getValue("mac-1", pMac.color1),					pMac.class,			"background-color");
-	initColorpicker("mac-2",			GM_getValue("mac-2", pMac.color2),					pMac.class,			"color");
-	initColorpicker("early-1",			GM_getValue("early-1", pEarly.color1),				pEarly.class,		"background-color");
-	initColorpicker("early-2",			GM_getValue("early-2", pEarly.color2),				pEarly.class,		"color");
-	initColorpicker("hidden-1",			GM_getValue("hidden-1", pHidden.color1),			pHidden.class,		"background-color");
-	initColorpicker("hidden-2",			GM_getValue("hidden-2", pHidden.color2),			pHidden.class,		"color");
-	initColorpicker("owned-1",			GM_getValue("owned-1", pOwned.color1),				pOwned.class,		"background-color");
-	initColorpicker("owned-2",			GM_getValue("owned-2", pOwned.color2),				pOwned.class,		"color");
-	initColorpicker("ignored-1",		GM_getValue("ignored-1", pIgnored.color1),			pIgnored.class,		"background-color");
-	initColorpicker("ignored-2",		GM_getValue("ignored-2", pIgnored.color2),			pIgnored.class,		"color");
+	initColorpicker("bundle-1", GM_getValue("bundle-1", pBundle.color1), pBundle.class, "background-color");
+	initColorpicker("bundle-2", GM_getValue("bundle-2", pBundle.color2), pBundle.class, "color");
+	initColorpicker("card-1", GM_getValue("card-1", pCard.color1), pCard.class, "background-color");
+	initColorpicker("card-2", GM_getValue("card-2", pCard.color2), pCard.class, "color");
+	initColorpicker("achievement-1", GM_getValue("achievement-1", pAchievement.color1), pAchievement.class, "background-color");
+	initColorpicker("achievement-2", GM_getValue("achievement-2", pAchievement.color2), pAchievement.class, "color");
+	initColorpicker("wishlist-1", GM_getValue("wishlist-1", pWishlist.color1), pWishlist.class, "background-color");
+	initColorpicker("wishlist-2", GM_getValue("wishlist-2", pWishlist.color2), pWishlist.class, "color");
+	initColorpicker("linux-1", GM_getValue("linux-1", pLinux.color1), pLinux.class, "background-color");
+	initColorpicker("linux-2", GM_getValue("linux-2", pLinux.color2), pLinux.class, "color");
+	initColorpicker("mac-1", GM_getValue("mac-1", pMac.color1), pMac.class, "background-color");
+	initColorpicker("mac-2", GM_getValue("mac-2", pMac.color2), pMac.class, "color");
+	initColorpicker("early-1", GM_getValue("early-1", pEarly.color1), pEarly.class, "background-color");
+	initColorpicker("early-2", GM_getValue("early-2", pEarly.color2), pEarly.class, "color");
+	initColorpicker("hidden-1", GM_getValue("hidden-1", pHidden.color1), pHidden.class, "background-color");
+	initColorpicker("hidden-2", GM_getValue("hidden-2", pHidden.color2), pHidden.class, "color");
+	initColorpicker("owned-1", GM_getValue("owned-1", pOwned.color1), pOwned.class, "background-color");
+	initColorpicker("owned-2", GM_getValue("owned-2", pOwned.color2), pOwned.class, "color");
+	initColorpicker("ignored-1", GM_getValue("ignored-1", pIgnored.color1), pIgnored.class, "background-color");
+	initColorpicker("ignored-2", GM_getValue("ignored-2", pIgnored.color2), pIgnored.class, "color");
 
-	$(".default_bundle")		.click(function(){clickDefaultColor("bundle",		pBundle);});
-	$(".default_card")			.click(function(){clickDefaultColor("card",			pCard);});
-	$(".default_achievement")	.click(function(){clickDefaultColor("achievement",	pAchievement);});
-	$(".default_wishlist")		.click(function(){clickDefaultColor("wishlist",		pWishlist);});
-	$(".default_linux")			.click(function(){clickDefaultColor("linux",		pLinux);});
-	$(".default_mac")			.click(function(){clickDefaultColor("mac",			pMac);});
-	$(".default_early")			.click(function(){clickDefaultColor("early",		pEarly);});
-	$(".default_hidden")		.click(function(){clickDefaultColor("hidden",		pHidden);});
-	$(".default_owned")			.click(function(){clickDefaultColor("owned",		pOwned);});
-	$(".default_other")			.click(function(){clickDefaultColor("ignored",		pIgnored);});
+	$(".default_bundle").click(function(){clickDefaultColor("bundle", pBundle);});
+	$(".default_card").click(function(){clickDefaultColor("card", pCard);});
+	$(".default_achievement").click(function(){clickDefaultColor("achievement", pAchievement);});
+	$(".default_wishlist").click(function(){clickDefaultColor("wishlist",	 pWishlist);});
+	$(".default_linux").click(function(){clickDefaultColor("linux", pLinux);});
+	$(".default_mac").click(function(){clickDefaultColor("mac", pMac);});
+	$(".default_early").click(function(){clickDefaultColor("early", pEarly);});
+	$(".default_hidden").click(function(){clickDefaultColor("hidden", pHidden);});
+	$(".default_owned").click(function(){clickDefaultColor("owned", pOwned);});
+	$(".default_other").click(function(){clickDefaultColor("ignored", pIgnored);});
 }
 
 function initColorpicker(id, currentColor, tag, property)
@@ -1240,7 +1278,7 @@ function toggleMinimalist(minimalist = true)
 function AddShortcutToSettingPage()
 {
 	var shortcut = '\
-		<a class="nav__row sggt_shortcut" href="/account/settings/giveaways"> \
+		<a class="nav__row sggt_shortcut" href="/sg-game-tags"> \
 			<i class="icon-yellow fa fa-fw fa-tag"></i> \
 			<div class="nav__row__summary"> \
 				<p class="nav__row__summary__name">SG Game Tags Setting</p> \

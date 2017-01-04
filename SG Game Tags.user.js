@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.3.3
+// @version      3.3.10
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -237,7 +237,8 @@ function main()
 		UserdataCache = 0; GM_setValue("UserdataCache", 0);
 	}
 
-	if(GameData === "") PrepareJSON();
+	if(GameData === "")
+		PrepareJSON();
 	else
 	{
 		GameData = JSON.parse(GameData);
@@ -330,7 +331,7 @@ function ProcessGiveawayListPage(parent) // giveaways list with creator name
 	{
 		$(parent).find(".giveaway__row-inner-wrap").each(function(index, element)
 		{
-			var URL = $(element).find("a.giveaway__icon").attr("href");
+			var URL = $(element).find(".giveaway__heading>a.giveaway__icon").attr("href");
 			if(URL !== undefined)
 			{
 				var Name = $(element).find(".giveaway__heading__name").contents().filter(
@@ -364,7 +365,8 @@ function ProcessGameListPage(parent) // giveaways / games list
 				var Name = $(element).find(".table__column__heading").text().substring(0,30);
 				var Target = $(element).find(".table__column--width-fill > :first-child");
 
-				if(/www.steamgifts.com\/sales/.test(THIS_URL)) Target.css("display", "block"); //because sales pages don't use <p> thus tags will appears in line with title
+				if(/www.steamgifts.com\/sales/.test(THIS_URL))
+					Target.css("display", "block"); //because sales pages don't use <p> thus tags will appears in line with title
 
 				ProcessTags(Target, URL, Name);
 			}
@@ -486,21 +488,26 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 			displayElems(tagAchievement);
 			tagAchievement.setAttribute("href", pAchievement.link+GameData[appID].game+"/achievements/");
 		}
-		if(cbMac && data.mac) displayElems(tagMac);
-		if(cbLinux && data.linux) displayElems(tagLinux);
+		if(cbMac && data.mac)
+			displayElems(tagMac);
+		if(cbLinux && data.linux)
+			displayElems(tagLinux);
 
 		if(data.last_checked < (Date.now() - (24 * 60 * 60 * 1000))) // 24 hours have passed since last checked
 		{
 			if((!data.cards && cbCards) || (!data.achievement && cbAchievement) || (!data.mac && cbMac ) || (!data.linux && cbLinux) || (data.early_access && cbEarly))
 				needRequest = true;
 		}
-		else if(data.early_access && cbEarly) displayElems(tagEarly);
+		else if(data.early_access && cbEarly)
+			displayElems(tagEarly);
 	}
 	if(needRequest)
 	{
 		var link = linkGameAPI+appID;
-		if(GameData[appID].last_checked !== 0) link += "&filters=categories,platforms,genres";
-		// console.log("[SG Game Tags] requesting " + linkGameAPI+appID);
+		if(GameData[appID].last_checked !== 0 || (packID != "0" && PackageData[packID].last_checked !== 0)) //if not first time checked, filter out the request
+			link += "&filters=categories,platforms,genres";
+
+		// console.log("[SG Game Tags] requesting " + link);
 
 		GM_xmlhttpRequest({
 			method: "GET",
@@ -512,17 +519,15 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 				if(obj !== undefined) // undefined = doesn't have store page or doesn't exist
 				// get steam apps categories : achievement, trading cards, etc
 				{
-					if(GameData[appID].last_checked === 0)
+					if (obj.type !== undefined && obj.type != "game") //if it is DLC, obj will have different fullgame.appid
 					{
-						if (obj.type != "game")
-						{
-							GameData[appID].game = obj.fullgame.appid;
-							tagCard.setAttribute("href", pCard.link+obj.fullgame.appid);
-							tagAchievement.setAttribute("href", pAchievement.link+obj.fullgame.appid+"/achievements/");
-						}
-						else if(packID != "0" && PackageData[packID].games.indexOf(appID) == -1)
-							PackageData[packID].games.push(appID);
+						GameData[appID].game = obj.fullgame.appid;
+						//set tagcard and tagachievement href to the main game appid
+						tagCard.setAttribute("href", pCard.link+obj.fullgame.appid);
+						tagAchievement.setAttribute("href", pAchievement.link+obj.fullgame.appid+"/achievements/");
 					}
+					else if(packID != "0" && PackageData[packID].games.indexOf(appID) == -1)
+						PackageData[packID].games.push(appID);
 
 					var categories = obj.categories;
 					if(categories !== undefined)
@@ -545,8 +550,9 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 						var catAchievement = $.grep(categories, function(e){ return e.id == "22"; });
 						if(catAchievement.length > 0)
 						{
-							if(cbAchievement) displayElems(tagAchievement);
 							GameData[appID].achievement = true;
+							if(cbAchievement)
+								displayElems(tagAchievement);
 							if(packID != "0")
 							{
 								PackageData[packID].achievement = true;
@@ -562,15 +568,19 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 					var platforms = obj.platforms;
 					if(platforms.linux)
 					{
-						if(cbLinux) displayElems(tagLinux);
 						GameData[appID].linux = true;
-						if(packID != "0") PackageData[packID].linux = true;
+						if(cbLinux)
+							displayElems(tagLinux);
+						if(packID != "0")
+							PackageData[packID].linux = true;
 					}
 					if(platforms.mac)
 					{
-						if(cbMac) displayElems(tagMac);
 						GameData[appID].mac = true;
-						if(packID != "0") PackageData[packID].mac = true;
+						if(cbMac)
+							displayElems(tagMac);
+						if(packID != "0")
+							PackageData[packID].mac = true;
 					}
 
 					// get steam apps genres
@@ -579,14 +589,17 @@ function getSteamCategories(appID, tagCard, tagAchievement, tagLinux, tagMac, ta
 						var genEarly = $.grep(obj.genres, function(e){ return e.id == "70"; });
 						if(genEarly.length > 0)
 						{
-							if(cbEarly) displayElems(tagEarly);
 							GameData[appID].early_access = true;
-							if(packID != "0") PackageData[packID].early_access = true;
+							if(cbEarly)
+								displayElems(tagEarly);
+							if(packID != "0")
+								PackageData[packID].early_access = true;
 						}
 						else
 						{
 							GameData[appID].early_access = false;
-							if(packID != "0") PackageData[packID].early_access = false;
+							if(packID != "0")
+								PackageData[packID].early_access = false;
 						}
 					}
 				}
@@ -634,12 +647,16 @@ function getBundleList()
 
 			if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME)
 				getUserdata();
+            else
+                main();
 		},
 		ontimeout: function(data)
 		{
 			console.log("[SG Game Tags] Request " + linkBundleAPI + " Timeout");
 			if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME)
 				getUserdata();
+            else
+                main();
 		}
 	});
 }
@@ -757,9 +774,12 @@ function getSteamCategoriesFromPackage(packID, tagCard, tagAchievement, tagLinux
 			else
 				tagAchievement.setAttribute("href", pAchievement.link+data.games[0]+"/achievements/");
 		}
-		if(cbMac && data.mac) displayElems(tagMac);
-		if(cbLinux && data.linux) displayElems(tagLinux);
-		if(cbEarly && data.early_access) displayElems(tagEarly);
+		if(cbMac && data.mac)
+			displayElems(tagMac);
+		if(cbLinux && data.linux)
+			displayElems(tagLinux);
+		if(cbEarly && data.early_access)
+			displayElems(tagEarly);
 
 		if(data.last_checked < (Date.now() - (24 * 60 * 60 * 1000))) // 24 hours have passed since last checked
 		{
@@ -816,22 +836,17 @@ function PrepareJSON()
 	GM_setValue("PackageData", JSON.stringify(PackageData));
 }
 
-function getAppIDfromLink(link)
-{
+function getAppIDfromLink(link){
 	var url = link.split("/");
 	return url[url.length-2];
 }
 
-function isApp(link)
-{
-	var pattern = /\/app|apps\/0-9\//;
-	return pattern.test(link);
+function isApp(link){
+	return /\/app|apps\/0-9\//.test(link);
 }
 
-function isPackage(link)
-{
-	var pattern = /\/sub|subs\/0-9\//;
-	return pattern.test(link);
+function isPackage(link){
+	return /\/sub|subs\/0-9\//.test(link);
 }
 
 
@@ -963,44 +978,22 @@ function initTagPositionSetting(no)
 			form__checkbox_1.setAttribute("title", 'The tags will display "Trading Cards", "Bundled", etc. This option will increase page height.');
 			form__checkbox_2.setAttribute("title", 'The tags will just display first letter. "Trading Cards" becomes "T", "Bundled" becomes "B", etc.');
 
-			$(form__checkbox_1).click(
-				function()
-				{
-					$(form__checkbox_2).removeClass("is-selected").addClass("is-disabled");
-					$(form__checkbox_1).removeClass("is-disabled").addClass("is-selected");
-					GM_setValue("cbTagStyle", 1);
+			$(form__checkbox_1).click(function()
+			{
+				$(form__checkbox_2).removeClass("is-selected").addClass("is-disabled");
+				$(form__checkbox_1).removeClass("is-disabled").addClass("is-selected");
+				GM_setValue("cbTagStyle", 1);		
 
-					$("."+pBundle.class).text(pBundle.text);
-					$("."+pCard.class).text(pCard.text);
-					$("."+pAchievement.class).text(pAchievement.text);
-					$("."+pWishlist.class).text(pWishlist.text);
-					$("."+pLinux.class).text(pLinux.text);
-					$("."+pMac.class).text(pMac.text);
-					$("."+pEarly.class).text(pEarly.text);
-					$("."+pHidden.class).text(pHidden.text);
-					$("."+pOwned.class).text(pOwned.text);
-					$("."+pIgnored.class).text(pIgnored.text);
-				}
-			);
-			$(form__checkbox_2).click(
-				function()
-				{
-					$(form__checkbox_1).removeClass("is-selected").addClass("is-disabled");
-					$(form__checkbox_2).removeClass("is-disabled").addClass("is-selected");
-					GM_setValue("cbTagStyle", 2);
+				toggleMinimalist(false);		
+			});
+			$(form__checkbox_2).click(function()
+			{
+				$(form__checkbox_1).removeClass("is-selected").addClass("is-disabled");
+				$(form__checkbox_2).removeClass("is-disabled").addClass("is-selected");
+				GM_setValue("cbTagStyle", 2);
 
-					$("."+pBundle.class).text(pBundle.min);
-					$("."+pCard.class).text(pCard.min);
-					$("."+pAchievement.class).text(pAchievement.min);
-					$("."+pWishlist.class).text(pWishlist.min);
-					$("."+pLinux.class).text(pLinux.min);
-					$("."+pMac.class).text(pMac.min);
-					$("."+pEarly.class).text(pEarly.min);
-					$("."+pHidden.class).text(pHidden.min);
-					$("."+pOwned.class).text(pOwned.min);
-					$("."+pIgnored.class).text(pIgnored.min);
-				}
-			);
+				toggleMinimalist();
+			});
 
 		$(form__row__indent).append(form__checkbox_1).append(form__checkbox_2);
 
@@ -1071,7 +1064,6 @@ function initTagColorSetting(no)
 		<style type="text/css"> \
 			.row div { display: inline-block; } \
 			.preview-tags { width: 80px; margin-left: 10px; } \
-			.preview-tags a { display: inline-block; cursor: default; } \
 			.row .markdown {margin-left: 10px; cursor: pointer; }\
 		</style> \
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css" />';
@@ -1088,61 +1080,61 @@ function initTagColorSetting(no)
 					<input type="text" class="colorpicker" id="bundle-1"/> \
 					<input type="text" class="colorpicker" id="bundle-2"/> \
 					<div class="markdown"><a class="default_bundle">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pBundle.class + '" title="' + pBundle.text + '">' + pBundle.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pBundle.class + '" style="display: inline-block;">' + pBundle.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="card-1"/> \
 					<input type="text" class="colorpicker" id="card-2"/> \
 					<div class="markdown"><a class="default_card">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pCard.class + '" title="' + pCard.text + '">' + pCard.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pCard.class + '" style="display: inline-block;">' + pCard.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="achievement-1"/> \
 					<input type="text" class="colorpicker" id="achievement-2"/> \
 					<div class="markdown"><a class="default_achievement">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pAchievement.class + '" title="' + pAchievement.text + '">' + pAchievement.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pAchievement.class + '" style="display: inline-block;">' + pAchievement.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="wishlist-1"/> \
 					<input type="text" class="colorpicker" id="wishlist-2"/> \
 					<div class="markdown"><a class="default_wishlist">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pWishlist.class + '" title="' + pWishlist.text + '">' + pWishlist.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pWishlist.class + '" style="display: inline-block;">' + pWishlist.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="hidden-1"/> \
 					<input type="text" class="colorpicker" id="hidden-2"/> \
 					<div class="markdown"><a class="default_hidden">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pHidden.class + '" title="' + pHidden.text + '">' + pHidden.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pHidden.class + '" style="display: inline-block;">' + pHidden.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="linux-1"/> \
 					<input type="text" class="colorpicker" id="linux-2"/> \
 					<div class="markdown"><a class="default_linux">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pLinux.class + '" title="' + pLinux.text + '">' + pLinux.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pLinux.class + '" style="display: inline-block;">' + pLinux.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="mac-1"/> \
 					<input type="text" class="colorpicker" id="mac-2"/> \
 					<div class="markdown"><a class="default_mac">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pMac.class + '" title="' + pMac.text + '">' + pMac.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pMac.class + '" style="display: inline-block;">' + pMac.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="early-1"/> \
 					<input type="text" class="colorpicker" id="early-2"/> \
 					<div class="markdown"><a class="default_early">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pEarly.class + '" title="' + pEarly.text + '">' + pEarly.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pEarly.class + '" style="display: inline-block;">' + pEarly.text + '</a></div> \
 				</div> \
 				<div class="row"> \
 					<input type="text" class="colorpicker" id="owned-1"/> \
 					<input type="text" class="colorpicker" id="owned-2"/> \
 					<div class="markdown"><a class="default_owned">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pOwned.class + '" title="' + pOwned.text + '">' + pOwned.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pOwned.class + '" style="display: inline-block;">' + pOwned.text + '</a></div> \
 				</div> \
 				<div class="row"> \
-					<input type="text" class="colorpicker" id="other-1"/> \
-					<input type="text" class="colorpicker" id="other-2"/> \
+					<input type="text" class="colorpicker" id="ignored-1"/> \
+					<input type="text" class="colorpicker" id="ignored-2"/> \
 					<div class="markdown"><a class="default_other">Default</a></div> \
-					<div class="preview-tags"><a class="tags ' + pIgnored.class + '" title="' + pIgnored.text + '">' + pIgnored.text + '</a></div> \
+					<div class="preview-tags"><a class="tags ' + pIgnored.class + '" style="display: inline-block;">' + pIgnored.text + '</a></div> \
 				</div> \
 				<div class="form__input-description">No need to press Save Changes button. It is automatically saved when colorpicker closed.</div>\
 			</div> \
@@ -1151,18 +1143,7 @@ function initTagColorSetting(no)
 	$(form__row).insertBefore(".js__submit-form");
 
 	if(cbTagStyle == 2) // change tags if minimalist selected
-	{
-		$("."+pBundle.class).text(pBundle.min);
-		$("."+pCard.class).text(pCard.min);
-		$("."+pAchievement.class).text(pAchievement.min);
-		$("."+pWishlist.class).text(pWishlist.min);
-		$("."+pLinux.class).text(pLinux.min);
-		$("."+pMac.class).text(pMac.min);
-		$("."+pEarly.class).text(pEarly.min);
-		$("."+pHidden.class).text(pHidden.min);
-		$("."+pOwned.class).text(pOwned.min);
-		$("."+pIgnored.class).text(pIgnored.min);
-	}
+		toggleMinimalist();
 
 	initColorpicker("bundle-1", GM_getValue("bundle-1", pBundle.color1), pBundle.class, "background-color");
 	initColorpicker("bundle-2", GM_getValue("bundle-2", pBundle.color2), pBundle.class, "color");
@@ -1182,24 +1163,25 @@ function initTagColorSetting(no)
 	initColorpicker("hidden-2", GM_getValue("hidden-2", pHidden.color2), pHidden.class, "color");
 	initColorpicker("owned-1", GM_getValue("owned-1", pOwned.color1), pOwned.class, "background-color");
 	initColorpicker("owned-2", GM_getValue("owned-2", pOwned.color2), pOwned.class, "color");
-	initColorpicker("other-1", GM_getValue("other-1", pIgnored.color1), pIgnored.class, "background-color");
-	initColorpicker("other-2", GM_getValue("other-2", pIgnored.color2), pIgnored.class, "color");
+	initColorpicker("ignored-1", GM_getValue("ignored-1", pIgnored.color1), pIgnored.class, "background-color");
+	initColorpicker("ignored-2", GM_getValue("ignored-2", pIgnored.color2), pIgnored.class, "color");
 
 	$(".default_bundle").click(function(){clickDefaultColor("bundle", pBundle);});
 	$(".default_card").click(function(){clickDefaultColor("card", pCard);});
 	$(".default_achievement").click(function(){clickDefaultColor("achievement", pAchievement);});
-	$(".default_wishlist").click(function(){clickDefaultColor("wishlist", pWishlist);});
+	$(".default_wishlist").click(function(){clickDefaultColor("wishlist",	 pWishlist);});
 	$(".default_linux").click(function(){clickDefaultColor("linux", pLinux);});
 	$(".default_mac").click(function(){clickDefaultColor("mac", pMac);});
 	$(".default_early").click(function(){clickDefaultColor("early", pEarly);});
 	$(".default_hidden").click(function(){clickDefaultColor("hidden", pHidden);});
 	$(".default_owned").click(function(){clickDefaultColor("owned", pOwned);});
-	$(".default_other").click(function(){clickDefaultColor("other", pIgnored);});
+	$(".default_other").click(function(){clickDefaultColor("ignored", pIgnored);});
 }
 
 function initColorpicker(id, currentColor, tag, property)
 {
-	$("#"+id).spectrum({
+	$("#"+id).spectrum(
+	{
 		showInput: true, // show color code and lets user input color code
 		showInitial: true, //show previous color to compare with new color
 		showPalette: true,
@@ -1219,8 +1201,12 @@ function initColorpicker(id, currentColor, tag, property)
 			["#600","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
 		],
 		color:currentColor,
-		move: function(color){ $("."+tag).css(property, color.toHexString()); },
-		change: function(color){ $("."+tag).css(property, color.toHexString()); },
+		move: function(color){
+			$("."+tag).css(property, color.toHexString());
+		},
+		change: function(color){
+			$("."+tag).css(property, color.toHexString());
+		},
 		hide: function(color){
 			GM_setValue(id, color.toHexString());
 		}
@@ -1234,6 +1220,20 @@ function clickDefaultColor(name, tagprop)
 	$("."+tagprop.class).css("background-color", tagprop.color1).css("color", tagprop.color2);
 	$("#"+name+"-1").spectrum("set", tagprop.color1);
 	$("#"+name+"-2").spectrum("set", tagprop.color2);
+}
+
+function toggleMinimalist(minimalist = true)
+{
+	$("."+pBundle.class).text(minimalist ? pBundle.min : pBundle.text);
+	$("."+pCard.class).text(minimalist ? pCard.min : pCard.text);
+	$("."+pAchievement.class).text(minimalist ? pAchievement.min : pAchievement.text);
+	$("."+pWishlist.class).text(minimalist ? pWishlist.min : pWishlist.text);
+	$("."+pLinux.class).text(minimalist ? pLinux.min : pLinux.text);
+	$("."+pMac.class).text(minimalist ? pMac.min : pMac.text);
+	$("."+pEarly.class).text(minimalist ? pEarly.min : pEarly.text);
+	$("."+pHidden.class).text(minimalist ? pHidden.min : pHidden.text);
+	$("."+pOwned.class).text(minimalist ? pOwned.min : pOwned.text);
+	$("."+pIgnored.class).text(minimalist ? pIgnored.min : pIgnored.text);
 }
 
 // ==================================================================================================

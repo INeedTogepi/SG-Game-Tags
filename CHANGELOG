@@ -1,7 +1,12 @@
+3.4.1
+- Fixed bug link to setting page appear in wrong drop down if using SGT Frog
+
+
 3.4
-- Newer version of JQuery (from 2.1.4 to 2.2.4)
 - Moved setting page to www.steamgifts.com/sg-game-tags
-- Added link to SG Game Tags setting in sidebar account setting
+- Added link to SG Game Tags setting to sidebar at pages https://steamgifts.com/account/*
+- Added inverse version of Bundled tag. Only appear if the game is not bundled.
+- Newer version of JQuery (from 2.1.4 to 2.2.4)
 
 3.3
 - Optimized filter from gameAPI if game is saved

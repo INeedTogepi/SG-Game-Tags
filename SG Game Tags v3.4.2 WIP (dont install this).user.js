@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.4.1
+// @version      3.4.2
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -22,7 +22,7 @@
 /* Constant Variables */
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?appids=";//filters=categories,platforms,genres&
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?packageids=";
-const linkBundleAPI = "http://www.ruphine.esy.es/steamgifts/GetBundleStatus.php"; //?AppID=325470
+const linkBundleAPI = "http://www.ruphine.esy.es/steamgifts/bundlelist.php?v=2"; //v1 = {"appid":"38900", "type":"app"} v2 = {"appid":"A38900"}
 const linkUserAPI = "http://store.steampowered.com/dynamicstore/userdata/";
 
 //p for properties
@@ -543,7 +543,7 @@ function getSteamCategories(appID, $tagCard, $tagAchievement, $tagLinux, $tagMac
 							{
 								PackageData[packID].cards = true;
 								if(PackageData[packID].games.length > 1)
-									$tagCard.attr("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
+									$tagCard.attr("href", "http://ruphine.esy.es/steamgifts/tradingcard.php?packageid="+packID);
 								else
 									$tagCard.attr("href", pCard.link+PackageData[packID].games[0]);
 							}
@@ -559,7 +559,7 @@ function getSteamCategories(appID, $tagCard, $tagAchievement, $tagLinux, $tagMac
 							{
 								PackageData[packID].achievement = true;
 								if(PackageData[packID].games.length > 1)
-									$tagAchievement.attr("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
+									$tagAchievement.attr("href", "http://ruphine.esy.es/steamgifts/achievement.php?packageid="+packID);
 								else
 									$tagAchievement.attr("href", pAchievement.link+PackageData[packID].games[0]+"/achievements/");
 							}
@@ -761,7 +761,7 @@ function getSteamCategoriesFromPackage(packID, $tagCard, $tagAchievement, $tagLi
 			$tagCard.css("display", "inline-block");
 			if(data.games.length > 1)
 			{
-				$tagCard.attr("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
+				$tagCard.attr("href", "http://ruphine.esy.es/steamgifts/tradingcard.php?packageid="+packID);
 				$tagCard.attr("title", "There is " + data.games.length + " games in this package, and at least one of them have trading cards");
 			}
 			else
@@ -772,7 +772,7 @@ function getSteamCategoriesFromPackage(packID, $tagCard, $tagAchievement, $tagLi
 			$tagAchievement.css("display", "inline-block");
 			if(data.games.length > 1)
 			{
-				$tagAchievement.attr("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
+				$tagAchievement.attr("href", "http://ruphine.esy.es/steamgifts/achievement.php?packageid="+packID);
 				$tagAchievement.attr("title", "There is " + data.games.length + " games in this package, and at least one of them have achievements");
 			}
 			else
@@ -1149,8 +1149,8 @@ function initRowColorPicker(name, tag)
 		.append('<div class="markdown"><a class="default_' + name + '">Default</a></div>')
 		.append('<div class="preview-tags"><a class="tags ' + tag.class + '" style="display: inline-block;">' + tag.text + '</a></div>');
 
-	initColorpicker($cp1, GM_getValue(name+"-1", tag.color1), tag.class, "background-color");
-	initColorpicker($cp2, GM_getValue(name+"-2", tag.color2), tag.class, "color");
+	initColorpicker($cp1, GM_getValue(name+"-1", tag.color1), tag.class, "background-color", name+"-1");
+	initColorpicker($cp2, GM_getValue(name+"-2", tag.color2), tag.class, "color", name+"-2");
 
 	$row.find("a").click(function(){clickDefaultColor(name, tag);});
 	return $row;
@@ -1188,7 +1188,7 @@ function initTagColorSetting()
 		toggleMinimalist();
 }
 
-function initColorpicker($cp, currentColor, tag, property)
+function initColorpicker($cp, currentColor, tag, property, GMsetValue)
 {
 	$cp.spectrum(
 	{
@@ -1218,7 +1218,7 @@ function initColorpicker($cp, currentColor, tag, property)
 			$("."+tag).css(property, color.toHexString());
 		},
 		hide: function(color){
-			GM_setValue(id, color.toHexString());
+			GM_setValue(GMsetValue, color.toHexString());
 		}
 	});
 }

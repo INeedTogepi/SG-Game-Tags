@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.4
+// @version      3.4.1
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -1149,8 +1149,8 @@ function initRowColorPicker(name, tag)
 		.append('<div class="markdown"><a class="default_' + name + '">Default</a></div>')
 		.append('<div class="preview-tags"><a class="tags ' + tag.class + '" style="display: inline-block;">' + tag.text + '</a></div>');
 
-	initColorpicker($cp1, GM_getValue(name+"-1", tag.color1), tag.class, "background-color");
-	initColorpicker($cp2, GM_getValue(name+"-2", tag.color2), tag.class, "color");
+	initColorpicker($cp1, GM_getValue(name+"-1", tag.color1), tag.class, "background-color", name+"-1");
+	initColorpicker($cp2, GM_getValue(name+"-2", tag.color2), tag.class, "color", name+"-2");
 
 	$row.find("a").click(function(){clickDefaultColor(name, tag);});
 	return $row;
@@ -1188,7 +1188,7 @@ function initTagColorSetting()
 		toggleMinimalist();
 }
 
-function initColorpicker($cp, currentColor, tag, property)
+function initColorpicker($cp, currentColor, tag, property, GMsetValue)
 {
 	$cp.spectrum(
 	{
@@ -1218,7 +1218,7 @@ function initColorpicker($cp, currentColor, tag, property)
 			$("."+tag).css(property, color.toHexString());
 		},
 		hide: function(color){
-			GM_setValue(id, color.toHexString());
+			GM_setValue(GMsetValue, color.toHexString());
 		}
 	});
 }

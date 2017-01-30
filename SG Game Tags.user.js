@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.4.1
+// @version      3.4.2
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -22,7 +22,7 @@
 /* Constant Variables */
 const linkGameAPI = "http://store.steampowered.com/api/appdetails?appids=";//filters=categories,platforms,genres&
 const linkPackAPI = "http://store.steampowered.com/api/packagedetails?packageids=";
-const linkBundleAPI = "http://www.ruphine.esy.es/steamgifts/GetBundleStatus.php"; //?AppID=325470
+const linkBundleAPI = "http://ruphine.esy.es/steamgifts/GetBundleStatus.php";
 const linkUserAPI = "http://store.steampowered.com/dynamicstore/userdata/";
 
 //p for properties
@@ -254,6 +254,19 @@ function main()
 								</a>\
 							</li>';
 		$($(".sidebar__navigation")[2]).append(sidebar_item);
+
+		if(/(settings\/giveaways\/filters)|steam\/(games|wishlist)/.test(THIS_URL)){
+			ProcessGameListPage($(".widget-container"));
+			observer = new MutationObserver(function(mutations)
+			{
+				$.each(mutations, function(index, mutation){
+					ProcessGameListPage(mutation.addedNodes);
+				});
+			});
+			$(".widget-container>div").each(function(index, element){
+				observer.observe(element, config);
+			});
+		}
 	}
 	else if(/www.steamgifts.com\/sg-game-tags/.test(THIS_URL)) // process sg game tags setting page
 		initSetting();
@@ -295,15 +308,11 @@ function main()
 	else if(/www.steamgifts.com\/giveaway\//.test(THIS_URL)) // giveaway page https://www.steamgifts.com/giveaway/FGbTw/left-4-dead-2
 		ProcessFeaturedGiveaway($(".featured__inner-wrap a")[0].href);
 
-	// https://www.steamgifts.com/sales*
-	// https://www.steamgifts.com/sales/account/steam/games
-	// https://www.steamgifts.com/sales/account/steam/wishlist
 	// https://www.steamgifts.com/giveaways/created
 	// https://www.steamgifts.com/giveaways/entered
 	// https://www.steamgifts.com/giveaways/won
 	// https://www.steamgifts.com/giveaways/wishlist
-	// https://www.steamgifts.com/account/settings/giveaways/filters
-	else if(/www.steamgifts.com\/(sales|account\/steam\/(games|wishlist)|giveaways\/(created|entered|won|wishlist)|account\/settings\/giveaways\/filters|group\/\w+\/\w+\/wishlist)/.test(THIS_URL))
+	else if(/www.steamgifts.com\/(giveaways\/(created|entered|won|wishlist)|group\/\w+\/\w+\/wishlist)/.test(THIS_URL))
 	{
 		ProcessGameListPage($(".widget-container"));
 		observer = new MutationObserver(function(mutations)
@@ -543,7 +552,7 @@ function getSteamCategories(appID, $tagCard, $tagAchievement, $tagLinux, $tagMac
 							{
 								PackageData[packID].cards = true;
 								if(PackageData[packID].games.length > 1)
-									$tagCard.attr("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
+									$tagCard.attr("href", "http://ruphine.esy.es/steamgifts/tradingcard.php?packageid="+packID);
 								else
 									$tagCard.attr("href", pCard.link+PackageData[packID].games[0]);
 							}
@@ -559,7 +568,7 @@ function getSteamCategories(appID, $tagCard, $tagAchievement, $tagLinux, $tagMac
 							{
 								PackageData[packID].achievement = true;
 								if(PackageData[packID].games.length > 1)
-									$tagAchievement.attr("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
+									$tagAchievement.attr("href", "http://ruphine.esy.es/steamgifts/achievement.php?packageid="+packID);
 								else
 									$tagAchievement.attr("href", pAchievement.link+PackageData[packID].games[0]+"/achievements/");
 							}
@@ -761,7 +770,7 @@ function getSteamCategoriesFromPackage(packID, $tagCard, $tagAchievement, $tagLi
 			$tagCard.css("display", "inline-block");
 			if(data.games.length > 1)
 			{
-				$tagCard.attr("href", "http://ruphine.esy.es/steamgifts/TradingCard.php?packageid="+packID);
+				$tagCard.attr("href", "http://ruphine.esy.es/steamgifts/tradingcard.php?packageid="+packID);
 				$tagCard.attr("title", "There is " + data.games.length + " games in this package, and at least one of them have trading cards");
 			}
 			else
@@ -772,7 +781,7 @@ function getSteamCategoriesFromPackage(packID, $tagCard, $tagAchievement, $tagLi
 			$tagAchievement.css("display", "inline-block");
 			if(data.games.length > 1)
 			{
-				$tagAchievement.attr("href", "http://ruphine.esy.es/steamgifts/Achievement.php?packageid="+packID);
+				$tagAchievement.attr("href", "http://ruphine.esy.es/steamgifts/achievement.php?packageid="+packID);
 				$tagAchievement.attr("title", "There is " + data.games.length + " games in this package, and at least one of them have achievements");
 			}
 			else
@@ -1147,7 +1156,7 @@ function initRowColorPicker(name, tag)
 	var $cp2 = $('<input type="text" class="colorpicker" id="' + name + '-2"/>');
 	$row.append($cp1).append($cp2)
 		.append('<div class="markdown"><a class="default_' + name + '">Default</a></div>')
-		.append('<div class="preview-tags"><a class="tags ' + tag.class + '" style="display: inline-block;">' + tag.text + '</a></div>');
+		.append('<div class="preview-tags"><a class="tags ' + tag.class + '" style="display: inline-block;" title="'+tag.text+'">' + tag.text + '</a></div>');
 
 	initColorpicker($cp1, GM_getValue(name+"-1", tag.color1), tag.class, "background-color", name+"-1");
 	initColorpicker($cp2, GM_getValue(name+"-2", tag.color2), tag.class, "color", name+"-2");
@@ -1253,13 +1262,13 @@ function toggleMinimalist(minimalist = true)
 function AddShortcutToSettingPage()
 {
 	var shortcut = '\
-		<a class="nav__row sggt_shortcut" href="/sg-game-tags"> \
+		<a class="nav__row" href="/sg-game-tags"> \
 			<i class="icon-yellow fa fa-fw fa-tag"></i> \
 			<div class="nav__row__summary"> \
 				<p class="nav__row__summary__name">SG Game Tags Setting</p> \
 				<p class="nav__row__summary__description">Open SG Game Tags setting page</span>.</p> \
 			</div> \
 		</a>';
-	var $dropdown = $(".nav__right-container .nav__absolute-dropdown .nav__row");
+	var $dropdown = $(".nav__right-container a[href='/account']").parent().find(".nav__absolute-dropdown .nav__row");
 	$($dropdown[2]).before(shortcut); // just before logout button
 }

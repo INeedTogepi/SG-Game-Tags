@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SG Game Tags
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.4.2
+// @version      3.5
 // @description  some tags of the game in Steamgifts.
 // @author       Ruphine
 // @match        *://www.steamgifts.com/*
@@ -1147,7 +1147,7 @@ function initRowColorPicker(name, tag)
 	var $cp2 = $('<input type="text" class="colorpicker" id="' + name + '-2"/>');
 	$row.append($cp1).append($cp2)
 		.append('<div class="markdown"><a class="default_' + name + '">Default</a></div>')
-		.append('<div class="preview-tags"><a class="tags ' + tag.class + '" style="display: inline-block;">' + tag.text + '</a></div>');
+		.append('<div class="preview-tags"><a class="tags ' + tag.class + '" style="display: inline-block;" title="' + tag.text + '">' + tag.text + '</a></div>');
 
 	initColorpicker($cp1, GM_getValue(name+"-1", tag.color1), tag.class, "background-color", name+"-1");
 	initColorpicker($cp2, GM_getValue(name+"-2", tag.color2), tag.class, "color", name+"-2");

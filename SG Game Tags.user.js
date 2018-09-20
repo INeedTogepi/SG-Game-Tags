@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         SG Game Tags
+// @name         SG Game Tags --- Sighery's mod
 // @namespace    https://steamcommunity.com/id/Ruphine/
 // @version      3.4.2
 // @description  some tags of the game in Steamgifts.
-// @author       Ruphine
+// @author       Ruphine, Sighery
 // @match        *://www.steamgifts.com/*
 // @icon         https://cdn.steamgifts.com/img/favicon.ico
 // @connect      steampowered.com
@@ -200,31 +200,34 @@ var PackageData = GM_getValue("PackageData", "");
 var rgWishlist, rgOwnedApps, rgOwnedPackages, rgIgnoredApps, rgIgnoredPackages;
 var arrBundled;
 
-if(cbBundled && BundledCache < Date.now() - CACHE_TIME) // Check if need to request bundle list from ruphine API
-	getBundleList();
-else if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME) //6 hours. Check if need to request steam user api
+// if(cbBundled && BundledCache < Date.now() - CACHE_TIME) // Check if need to request bundle list from ruphine API
+// 	getBundleList();
+// else if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME) //6 hours. Check if need to request steam user api
+if((cbWishlist || cbOwned || cbIgnored) && UserdataCache < Date.now() - CACHE_TIME) //6 hours. Check if need to request steam user api
 	getUserdata();
 else
 	main();
 
 function main()
 {
-	try {
-		arrBundled = JSON.parse(BundledGames);
-	}
-	catch (e) {
-		console.log("[SG Game Tags] Invalid json format for Bundle List");
-		BundledGames = ""; GM_setValue("BundledGames", "");
-		BundledCache = 0;  GM_setValue("BundledCache", 0);
-	}
+	// try {
+	// 	arrBundled = JSON.parse(BundledGames);
+	// }
+	// catch (e) {
+	// 	console.log("[SG Game Tags] Invalid json format for Bundle List");
+	// 	BundledGames = ""; GM_setValue("BundledGames", "");
+	// 	BundledCache = 0;  GM_setValue("BundledCache", 0);
+	// }
 
 	try {
 		var userdata = JSON.parse(UserdataAPI);
 		rgWishlist = userdata.rgWishlist;
 		rgOwnedApps = userdata.rgOwnedApps;
 		rgOwnedPackages = userdata.rgOwnedPackages;
-		rgIgnoredApps = userdata.rgIgnoredApps;
-		rgIgnoredPackages = userdata.rgIgnoredPackages;
+		// This changed recently from an array of apps to an array of dicts such
+		// as {"1234": 0}
+		rgIgnoredApps = Object.keys(userdata.rgIgnoredApps).map(x => parseInt(x));
+		rgIgnoredPackages = Object.keys(userdata.rgIgnoredPackages).map(x => parseInt(x));
 
 	}
 	catch (e) {
@@ -363,15 +366,30 @@ function ProcessGiveawayListPage(parent) // giveaways list with creator name
 
 function ProcessGameListPage(parent) // giveaways / games list
 {
+	console.log('Called ProcessGameListPage?');
 	if(cbBundled || cbCards || cbAchievement || cbHidden || cbWishlist || cbLinux || cbMac || cbEarly) // check if at least one tag enabled
 	{
 		$(parent).find(".table__row-inner-wrap").each(function(index, element)
 		{
 			var URL;
-			if(/www.steamgifts.com\/account\/settings\/giveaways\/filters/.test(THIS_URL))
+			console.log('ProcessGameListPage. THIS_URL is');
+			console.log(THIS_URL);
+			console.log('ProcessGameListPage. element is');
+			console.log(element);
+			// if (/www\.steamgifts\.com\/giveaways\/entered/.test(THIS_URL)) {
+			// 	console.log('ProcessGameListPage. Giveaways entered page?');
+			// 	// URL = $(element).first("a.table__column__heading").attr('href');
+			// 	URL = element.querySelector('a.table__column__heading').href;
+			// }
+			if (/www.steamgifts.com\/account\/settings\/giveaways\/filters/.test(THIS_URL))
 				URL = $(element).find("a.table__column__secondary-link").text();
+			else if (/www\.steamgifts\.com\/giveaways\/entered/.test(THIS_URL))
+				URL = $($(element).find(".table_image_thumbnail")[0]).css('background-image');
 			else
 				URL = $($(element).find(".global__image-inner-wrap")[0]).css('background-image');
+
+			console.log('ProcessGameListPage. URL is');
+			console.log(URL);
 
 			if(URL !== undefined)
 			{
@@ -382,6 +400,7 @@ function ProcessGameListPage(parent) // giveaways / games list
 				if(/www.steamgifts.com\/sales/.test(THIS_URL))
 					$Target.css("display", "block"); //because sales pages don't use <p> thus tags will appears in line with title
 
+				console.log('ProcessGameListPage. calling ProcessTags');
 				ProcessTags($Target, URL, Name);
 			}
 		});
@@ -452,8 +471,8 @@ function ProcessTags($Target, URL, Name)
 	}
 
 	var type = isApp(URL) ? 'app' : 'sub';
-	if(cbBundled && BundledGames !== "")
-		getBundleStatus(ID, type, $tagBundle);
+	// if(cbBundled && BundledGames !== "")
+	// 	getBundleStatus(ID, type, $tagBundle);
 	if(UserdataAPI !== "")
 	{
 		if(cbWishlist)
@@ -645,13 +664,14 @@ function getBundleStatus(appID, type, $tag)
 
 function getBundleList()
 {
-	// console.log("[SG Game Tags] requesting " + linkBundleAPI);
+	console.log("[SG Game Tags] requesting " + linkBundleAPI);
 	GM_xmlhttpRequest({
 		method: "GET",
 		timeout: 10000,
 		url: linkBundleAPI,
 		onload: function(data)
 		{
+			console.log('On bundlelist req onload');
 			BundledGames = data.responseText;
 			GM_setValue("BundledGames", BundledGames);
 
@@ -670,13 +690,16 @@ function getBundleList()
 				getUserdata();
             else
                 main();
+		},
+		onerror: function(data) {
+			console.log('On bundlelist req onerror');
 		}
 	});
 }
 
 function getUserdata()
 {
-	// console.log("[SG Game Tags] requesting " + linkUserAPI);
+	console.log("[SG Game Tags] requesting " + linkUserAPI);
 	GM_xmlhttpRequest({
 		method: "GET",
 		timeout: 10000,
@@ -746,7 +769,9 @@ function getOwnedStatus(appID, $elems, isApp)
 
 function getIgnoredStatus(appID, $elems, isApp)
 {
+	console.log("Ignored status of appID " + appID);
 	appID = parseInt(appID);
+	console.log(rgIgnoredApps);
 	if(isApp && rgIgnoredApps.indexOf(appID) >= 0)
 		$elems.css("display", "inline-block");
 	else if(!isApp && rgIgnoredPackages.indexOf(appID) >= 0)
@@ -909,8 +934,8 @@ function initSetting()
 		<link rel="shortcut icon" href="https://cdn.steamgifts.com/img/favicon.ico">\
 		<title>SG Game Tags Setting</title>\
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">\
-		<link rel="stylesheet" type="text/css" href="https://cdn.steamgifts.com/css/minified_v18.css">\
-		<script src="https://cdn.steamgifts.com/js/minified_v15.js"></script>\
+		<link rel="stylesheet" type="text/css" href="https://cdn.steamgifts.com/css/minified_v33.css">\
+		<script src="https://cdn.steamgifts.com/js/minified_v44.js"></script>\
 		<meta name="viewport" content="width=1200">\
 		<!-- SGGT Import -->\
 		<style type="text/css">\

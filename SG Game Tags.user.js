@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         SG Game Tags --- Sighery's mod
+// @name         SG Game Tags --- Sighery's mod w/ INeedTogepi's fix
 // @namespace    https://steamcommunity.com/id/Ruphine/
-// @version      3.4.2
+// @version      3.4.3
 // @description  some tags of the game in Steamgifts.
-// @author       Ruphine, Sighery
+// @author       Ruphine, Sighery, INeedTogepi
 // @match        *://www.steamgifts.com/*
 // @icon         https://cdn.steamgifts.com/img/favicon.ico
 // @connect      steampowered.com
@@ -875,8 +875,21 @@ function PrepareJSON()
 }
 
 function getAppIDfromLink(link){
+    //console.log("getAppIDfromLink() function begins");
+    //console.log("link var: " + link);
 	var url = link.split("/");
-	return url[url.length-2];
+    //console.log("url var: " + url);
+    if (link.includes('?')){
+        //console.log("link var includes '?'");
+        var urlParameters = url[url.length-1].split("?");
+        //console.log("urlParameters var: " + urlParameters);
+        //console.log("urlParameters[urlParameters.length-2] var: " + urlParameters[urlParameters.length-2]);
+        return urlParameters[urlParameters.length-2];
+    } else {
+        //console.log("link var does not include '?'");
+        //console.log("url[url.length-2] var: " + url[url.length-2]);
+        return url[url.length-2];
+    }
 }
 
 function isApp(link){
